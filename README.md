@@ -2,7 +2,7 @@
 
 « Hex Editor » is a graphical application built with Python's Tkinter that allows users to open, view, and edit files in hexadecimal and ASCII formats. It provides a range of features for inspecting and manipulating binary data.
 
-| :---------------------------------------------- | :----------------------------------------------- |
+
 ![image](https://github.com/user-attachments/assets/7fa4efa0-16ee-492c-8c4d-5534262884dc) (Light Theme) | ![image](https://github.com/user-attachments/assets/47146ae2-7884-4283-9cd8-5c09d90f6d61) (Dark Blue Theme) |
 | :---------------------------------------------- | :----------------------------------------------- |
 ![image](https://github.com/user-attachments/assets/99a77f7b-8b7c-4756-8057-49614819b065) (Dark Amber Theme) | ![image](https://github.com/user-attachments/assets/e4c1b0bd-095a-4342-8979-3b59da8f0ea3) (Colorful Theme) |
