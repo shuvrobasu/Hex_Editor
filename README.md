@@ -3,9 +3,7 @@
 « Hex Editor » is a graphical application built with Python's Tkinter that allows users to open, view, and edit files in hexadecimal and ASCII formats. It provides a range of features for inspecting and manipulating binary data.
 
 
-![image](https://github.com/user-attachments/assets/b1dfa8f6-a862-421e-aecf-28e08e967b2e)  (Light Theme) | ![image](https://github.com/user-attachments/assets/3254685b-b461-4242-9d45-419194cfdedf) (Dark Blue Theme) |
-| :---------------------------------------------- | :----------------------------------------------- |
-![image](https://github.com/user-attachments/assets/f5f58d56-bcc8-4f94-a344-f031351abf51) (Dark Amber Theme) | ![image](https://github.com/user-attachments/assets/fa202cf9-d93d-49b9-a7a5-f2a66bfec05e)  (Colorful Theme) |
+![image](https://github.com/user-attachments/assets/b1dfa8f6-a862-421e-aecf-28e08e967b2e)  (Light Theme) 
 
 
 ## Features
@@ -14,6 +12,7 @@
 *   **Line Numbers & Offsets:**
     *   **Line Numbers:** A dedicated column on the far left displays 0-indexed line numbers for easy row identification, even for very large files.
     *   **Offsets:** The traditional hexadecimal offset column is positioned next to the line numbers.
+      
 *   **File Operations:**
     *   Open binary files (e.g., `.exe`, `.bin`, or any file).
     *   Save modified data to a new file ("Save As...").
@@ -54,6 +53,10 @@
 *   **Offset-Specific Replace (Moved to Right Panel):**
     *   Replace a single byte at a user-specified offset with a new hex or decimal value.
 
+*   **Bookmarks**
+     *   Add/Delete Bookmarks (save a specific offset with a tag name for future reference and quickly jump between sections of a file)
+     *   Bookmarks are also saved in `config.dat` file for future use.
+             
 *   **Data Inspector:**
     *   View the data at the current cursor position interpreted as various data types (little-endian):
         *   8-bit, 16-bit, 32-bit, 64-bit Integers
