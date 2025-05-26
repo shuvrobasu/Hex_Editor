@@ -47,7 +47,8 @@
     *   Displays the count of matches.
     *   Dedicated "Search Results" listbox for quick jumps to matches.
       
-    ![image](https://github.com/user-attachments/assets/14cce620-50eb-42a7-9c76-49b501f14648) 
+![image](https://github.com/user-attachments/assets/7c1ba60a-d663-4b32-905a-137ead7d78fc)
+
 
 
 *   **Offset-Specific Replace (Moved to Right Panel):**
