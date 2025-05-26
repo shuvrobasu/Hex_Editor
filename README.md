@@ -21,8 +21,8 @@
     *   Jump to specific offsets (hexadecimal or decimal input).
     *   Quick navigation to the "Top of File" and "End of File".
     *   Clear display of the current cursor offset and visible data range.
-    *   Use of <u>Ctrl+T</u> (Top of file), Ctrl+E (End of file), Ctrl+P (Previous Page) & Ctrl+N (Next Page)
-    *   Use Ctrl+S (Save) and Ctrl+Q (Quit)
+    *   Use of **Ctrl+T** (Top of file), **Ctrl+E** (End of file), **Ctrl+P** (Previous Page) & **Ctrl+N** (Next Page)
+    *   Use **Ctrl+S** (Save) and **Ctrl+Q** (Quit)
       
 *   **Editing:**
     *   Directly edit bytes in either the hex or ASCII view by double-clicking or pressing Enter on a selected byte.
