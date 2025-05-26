@@ -5,7 +5,7 @@
 
 ![image](https://github.com/user-attachments/assets/b1dfa8f6-a862-421e-aecf-28e08e967b2e)  (Light Theme) | ![image](https://github.com/user-attachments/assets/3254685b-b461-4242-9d45-419194cfdedf) (Dark Blue Theme) |
 | :---------------------------------------------- | :----------------------------------------------- |
-![image](https://github.com/user-attachments/assets/2d88c598-ed1e-4ba9-86bb-3ce2753ea4f2) (Dark Amber Theme) | ![image](https://github.com/user-attachments/assets/425e041b-69f3-46f5-896f-7f8f65c75bad)  (Colorful Theme) |
+![image](https://github.com/user-attachments/assets/f5f58d56-bcc8-4f94-a344-f031351abf51) (Dark Amber Theme) | ![image](https://github.com/user-attachments/assets/fa202cf9-d93d-49b9-a7a5-f2a66bfec05e)  (Colorful Theme) |
 
 
 ## Features
