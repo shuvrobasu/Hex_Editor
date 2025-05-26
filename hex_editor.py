@@ -176,7 +176,7 @@ class HexTable(tk.Canvas):
         self.visible_data_rows = 0
         self.current_display_offset = 0
 
-        self.colors = LIGHT_THEME_COLORS
+        self.colors = LIGHT_THEME_COLORS # Will be updated by app_instance.apply_theme
 
         self.bind("<Button-1>", self._on_mouse_down)
         self.bind("<B1-Motion>", self._on_mouse_drag)
@@ -199,8 +199,7 @@ class HexTable(tk.Canvas):
             if new_visible_rows != self.visible_data_rows:
                 self.visible_data_rows = new_visible_rows
                 self._redraw()
-                self.app_instance.current_offset_display_label.config(
-                    text=f"Offset: 0x{self.current_display_offset:08X} ({self.current_display_offset} dec)")
+                # Status bar update triggered by HexScroll event
                 self.app_instance.root.event_generate("<<HexScroll>>")
 
     def apply_theme(self, colors):
@@ -220,10 +219,13 @@ class HexTable(tk.Canvas):
         self.current_display_offset = 0
 
         self.after_idle(self._on_canvas_configure)
+        # Status bar update will be handled by the caller (load_file in HexEditorApp)
+        # or by the subsequent goto_offset_and_display call.
 
     def goto_offset_and_display(self, target_offset):
         if not self.file_data:
             self.app_instance.current_offset_display_label.config(text="Offset: N/A")
+            self.app_instance.status_bar.config(text="No file loaded.")
             return
 
         target_offset = max(0, min(len(self.file_data) - 1, target_offset))
@@ -241,27 +243,31 @@ class HexTable(tk.Canvas):
         self.selection_start_offset = None
         self.selection_end_offset = None
         self._redraw()
-        self.app_instance.current_offset_display_label.config(text=f"Offset: 0x{target_offset:08X} ({target_offset} dec)")
+        # Status bar update triggered by HexSelection event
         self.app_instance.root.event_generate("<<HexSelection>>")
 
     def scroll_pages(self, direction):
-        if not self.file_data: return
+        if not self.file_data:
+            self.app_instance.status_bar.config(text="No file loaded for scrolling.")
+            return
 
         page_size_bytes = self.visible_data_rows * BYTES_PER_ROW
         new_offset = self.current_display_offset + (direction * page_size_bytes)
         last_possible_page_start_offset = max(0, (self.total_rows - self.visible_data_rows) * BYTES_PER_ROW)
         self.current_display_offset = max(0, min(new_offset, last_possible_page_start_offset))
         self._redraw()
-        self.app_instance.current_offset_display_label.config(text=f"Offset: 0x{self.current_display_offset:08X} ({self.current_display_offset} dec)")
+        # Status bar update triggered by HexScroll event
         self.app_instance.root.event_generate("<<HexScroll>>")
 
     def _on_mousewheel(self, event):
-        if not self.file_data: return
+        if not self.file_data:
+            self.app_instance.status_bar.config(text="No file loaded for scrolling.")
+            return
 
         lines_to_scroll = 3
-        if event.delta:
+        if event.delta: # Windows/X11
             delta_lines = -int(event.delta / 120) * lines_to_scroll
-        else:
+        else: # macOS
             delta_lines = -lines_to_scroll if event.num == 4 else lines_to_scroll
 
         delta_bytes = delta_lines * BYTES_PER_ROW
@@ -269,7 +275,7 @@ class HexTable(tk.Canvas):
         last_possible_start_offset = max(0, (self.total_rows - self.visible_data_rows) * BYTES_PER_ROW)
         self.current_display_offset = max(0, min(new_offset, last_possible_start_offset))
         self._redraw()
-        self.app_instance.current_offset_display_label.config(text=f"Offset: 0x{self.current_display_offset:08X} ({self.current_display_offset} dec)")
+        # Status bar update triggered by HexScroll event
         self.app_instance.root.event_generate("<<HexScroll>>")
 
     def _on_key_press(self, event):
@@ -277,6 +283,7 @@ class HexTable(tk.Canvas):
             return
 
         handled = False
+        # Specific keypresses (not Ctrl-modified)
         if event.keysym == "PageUp":
             self.scroll_pages(-1)
             handled = True
@@ -284,17 +291,19 @@ class HexTable(tk.Canvas):
             self.scroll_pages(1)
             handled = True
         elif event.keysym == "Up":
-            new_offset = self.current_display_offset - BYTES_PER_ROW
-            self.current_display_offset = max(0, new_offset)
+            if not self.file_data: return
+            new_offset_row = self.current_display_offset // BYTES_PER_ROW - 1
+            self.current_display_offset = max(0, new_offset_row * BYTES_PER_ROW)
             self._redraw()
-            self.app_instance.current_offset_display_label.config(text=f"Offset: 0x{self.current_display_offset:08X} ({self.current_display_offset} dec)")
+            self.app_instance.root.event_generate("<<HexScroll>>")
             handled = True
         elif event.keysym == "Down":
-            new_offset = self.current_display_offset + BYTES_PER_ROW
+            if not self.file_data: return
+            new_offset_row = self.current_display_offset // BYTES_PER_ROW + 1
             max_offset_to_display = max(0, (self.total_rows - self.visible_data_rows) * BYTES_PER_ROW)
-            self.current_display_offset = min(max_offset_to_display, new_offset)
+            self.current_display_offset = min(max_offset_to_display, new_offset_row * BYTES_PER_ROW)
             self._redraw()
-            self.app_instance.current_offset_display_label.config(text=f"Offset: 0x{self.current_display_offset:08X} ({self.current_display_offset} dec)")
+            self.app_instance.root.event_generate("<<HexScroll>>")
             handled = True
         elif event.keysym == "Left":
             if self.selected:
@@ -362,12 +371,12 @@ class HexTable(tk.Canvas):
         if selected_logical_row < current_top_display_row_logical:
             self.current_display_offset = selected_logical_row * BYTES_PER_ROW
             self._redraw()
-            self.app_instance.current_offset_display_label.config(text=f"Offset: 0x{self.current_display_offset:08X} ({self.current_display_offset} dec)")
+            # Status bar update triggered by HexScroll event
             self.app_instance.root.event_generate("<<HexScroll>>")
         elif selected_logical_row > current_bottom_display_row_logical:
             self.current_display_offset = max(0, (selected_logical_row - self.visible_data_rows + 1)) * BYTES_PER_ROW
             self._redraw()
-            self.app_instance.current_offset_display_label.config(text=f"Offset: 0x{self.current_display_offset:08X} ({self.current_display_offset} dec)")
+            # Status bar update triggered by HexScroll event
             self.app_instance.root.event_generate("<<HexScroll>>")
 
     def _get_offset_from_event(self, event):
@@ -418,10 +427,10 @@ class HexTable(tk.Canvas):
             self.selection_start_offset = clicked_offset
             self.selection_end_offset = clicked_offset
             self._redraw()
-            self.app_instance.current_offset_display_label.config(text=f"Offset: 0x{clicked_offset:08X} ({clicked_offset} dec)")
             self.app_instance.root.event_generate("<<HexSelection>>")
         else:
             self._select_none()
+            self.app_instance.status_bar.config(text="Clicked outside data area.")
 
     def _on_mouse_drag(self, event):
         if self._drag_start_offset is None or not self.file_data:
@@ -435,9 +444,8 @@ class HexTable(tk.Canvas):
             self.selected = (
                 current_offset_under_mouse // BYTES_PER_ROW, current_offset_under_mouse % BYTES_PER_ROW, 'hex')
             self._redraw()
-            self.app_instance.current_offset_display_label.config(text=f"Offset: 0x{current_offset_under_mouse:08X} ({current_offset_under_mouse} dec)")
-        else:
-            pass
+            self.app_instance.root.event_generate("<<HexSelection>>")
+        # else: no status bar update here, as drag might go out of bounds temporarily
 
     def _on_mouse_up(self, event):
         self._drag_start_offset = None
@@ -453,9 +461,11 @@ class HexTable(tk.Canvas):
             self.selected = (clicked_offset // BYTES_PER_ROW, clicked_offset % BYTES_PER_ROW, clicked_kind)
             self.selection_start_offset = clicked_offset
             self.selection_end_offset = clicked_offset
-            self.app_instance.current_offset_display_label.config(text=f"Offset: 0x{clicked_offset:08X} ({clicked_offset} dec)")
             self._start_edit(self.selected[0], self.selected[1], self.selected[2])
+            self.app_instance.status_bar.config(text=f"Editing byte at 0x{clicked_offset:08X}.")
             return
+        else:
+            self.app_instance.status_bar.config(text="Cannot edit outside data area.")
 
     def _on_right_click(self, event):
         context_menu = tk.Menu(self, tearoff=0)
@@ -471,9 +481,10 @@ class HexTable(tk.Canvas):
                 self.selection_start_offset = clicked_offset
                 self.selection_end_offset = clicked_offset
             self._redraw()
-            self.app_instance.current_offset_display_label.config(text=f"Offset: 0x{clicked_offset:08X} ({clicked_offset} dec)")
+            self.app_instance.root.event_generate("<<HexSelection>>")
         else:
             self._select_none()
+            self.app_instance.status_bar.config(text="No byte selected for context actions.")
 
         is_data_loaded = bool(self.file_data)
         is_selected_range = (self.selection_start_offset is not None and self.selection_end_offset is not None)
@@ -484,8 +495,7 @@ class HexTable(tk.Canvas):
                                  state=tk.NORMAL if is_selected_range else tk.DISABLED)
         context_menu.add_separator()
 
-        insert_enabled = is_data_loaded and (
-                    clicked_offset is not None or (len(self.file_data) == 0 and clicked_offset is None))
+        insert_enabled = is_data_loaded or (len(self.file_data) == 0 and clicked_offset is None)
         insert_target_offset = clicked_offset
         if insert_target_offset is None and len(self.file_data) == 0:
             insert_target_offset = 0
@@ -493,7 +503,7 @@ class HexTable(tk.Canvas):
             insert_target_offset = len(self.file_data)
 
         context_menu.add_command(label="Insert bytes here...", command=lambda: self._insert_bytes(insert_target_offset),
-                                 state=tk.NORMAL if is_data_loaded else tk.DISABLED)
+                                 state=tk.NORMAL if insert_enabled else tk.DISABLED)
 
         delete_enabled = is_selected_range
         context_menu.add_command(label="Delete selected bytes", command=self._delete_selected_bytes,
@@ -514,53 +524,66 @@ class HexTable(tk.Canvas):
             context_menu.tk_popup(event.x_root, event.y_root)
         finally:
             context_menu.grab_release()
+        self.app_instance.status_bar.config(text="Context menu opened.")
+
 
     def _select_all(self):
         if not self.file_data:
             self.app_instance.current_offset_display_label.config(text="Offset: N/A")
+            self.app_instance.status_bar.config(text="Cannot select all, file is empty.")
             return
         self.selection_start_offset = 0
         self.selection_end_offset = len(self.file_data) - 1
         self.selected = (0, 0, 'hex') if self.total_rows > 0 else None
         self._redraw()
-        self.app_instance.current_offset_display_label.config(text=f"[Offset]: 0x00000000 (0 dec)")
+        self.app_instance.status_bar.config(text=f"All {len(self.file_data)} bytes selected.")
         self.app_instance.root.event_generate("<<HexSelection>>")
 
     def _select_none(self):
+        if self.selection_start_offset is None and self.selection_end_offset is None:
+            self.app_instance.status_bar.config(text="No selection to clear.")
+            return
+
         self.selection_start_offset = None
         self.selection_end_offset = None
         self.selected = None
         self._redraw()
-        self.app_instance.current_offset_display_label.config(text="Offset: N/A")
+        self.app_instance.status_bar.config(text="Selection cleared.")
         self.app_instance.root.event_generate("<<HexSelection>>")
 
     def _insert_bytes(self, insert_offset):
         if not self.file_data and insert_offset != 0:
             messagebox.showinfo("Insert Bytes", "No file loaded. To insert, open a file or start at offset 0.")
-            self.app_instance.current_offset_display_label.config(text="Offset: N/A")
+            self.app_instance.status_bar.config(text="Insert failed: No file loaded.")
             return
 
         if insert_offset < 0 or insert_offset > len(self.file_data):
             messagebox.showerror("Error", "Invalid insertion point.")
-            self.app_instance.current_offset_display_label.config(text="Offset: N/A")
+            self.app_instance.status_bar.config(text="Insert failed: Invalid insertion point.")
             return
 
         try:
             num_bytes_str = simpledialog.askstring("Insert Bytes", "Number of bytes to insert:",
                                                    parent=self.app_instance.root)
-            if num_bytes_str is None: return
+            if num_bytes_str is None:
+                self.app_instance.status_bar.config(text="Insert cancelled.")
+                return
             num_bytes = int(num_bytes_str.strip())
             if num_bytes <= 0:
                 messagebox.showwarning("Warning", "Number of bytes must be positive.")
+                self.app_instance.status_bar.config(text="Insert failed: Number of bytes must be positive.")
                 return
 
             value_str = simpledialog.askstring("Insert Bytes", f"Value for {num_bytes} bytes (e.g., '00' or 'FF'):",
                                                parent=self.app_instance.root)
-            if value_str is None: return
+            if value_str is None:
+                self.app_instance.status_bar.config(text="Insert cancelled.")
+                return
             value_str = value_str.strip()
 
             if not (len(value_str) == 2 and all(c in "0123456789abcdefABCDEF" for c in value_str.lower())):
                 messagebox.showerror("Error", "Value must be a 2-digit hex string (e.g., '00', 'FF').")
+                self.app_instance.status_bar.config(text="Insert failed: Invalid fill value.")
                 return
             fill_byte = int(value_str, 16)
 
@@ -570,26 +593,31 @@ class HexTable(tk.Canvas):
             new_file_data.extend(self.file_data[insert_offset:])
 
             self.load_file(new_file_data)
+            self.app_instance.file_size = len(new_file_data) # Update file size
+            self.app_instance._update_file_info() # Update file info panel
             self.goto_offset_and_display(insert_offset)
             self.app_instance.status_bar.config(
                 text=f"Inserted {num_bytes} bytes at 0x{insert_offset:08X}.")
-            self.app_instance.current_offset_display_label.config(text=f"Offset: 0x{insert_offset:08X} ({insert_offset} dec)")
         except ValueError:
             messagebox.showerror("Error", "Invalid number of bytes or value.")
+            self.app_instance.status_bar.config(text="Insert failed: Invalid input.")
         except Exception as e:
             messagebox.showerror("Error", f"Failed to insert bytes: {e}")
+            self.app_instance.status_bar.config(text=f"Insert failed: {e}")
 
     def _delete_selected_bytes(self):
         if self.selection_start_offset is None or self.selection_end_offset is None:
             messagebox.showinfo("Delete Bytes", "No bytes selected.")
-            self.app_instance.current_offset_display_label.config(text="Offset: N/A")
+            self.app_instance.status_bar.config(text="Delete failed: No bytes selected.")
             return
 
         start = self.selection_start_offset
         end = self.selection_end_offset + 1
+        num_deleted = end - start
 
         if not messagebox.askyesno("Confirm Delete",
-                                   f"Delete {end - start} bytes from 0x{start:08X} to 0x{self.selection_end_offset:08X}?"):
+                                   f"Delete {num_deleted} bytes from 0x{start:08X} to 0x{self.selection_end_offset:08X}?"):
+            self.app_instance.status_bar.config(text="Delete cancelled.")
             return
 
         try:
@@ -598,42 +626,47 @@ class HexTable(tk.Canvas):
             new_file_data.extend(self.file_data[end:])
 
             self.load_file(new_file_data)
+            self.app_instance.file_size = len(new_file_data) # Update file size
+            self.app_instance._update_file_info() # Update file info panel
             new_offset = min(start, len(new_file_data) - 1 if new_file_data else 0)
             self.goto_offset_and_display(new_offset)
             self.app_instance.status_bar.config(
-                text=f"Deleted {end - start} bytes from 0x{start:08X}.")
-            self.app_instance.current_offset_display_label.config(text=f"Offset: 0x{new_offset:08X} ({new_offset} dec)")
+                text=f"Deleted {num_deleted} bytes from 0x{start:08X}.")
         except Exception as e:
             messagebox.showerror("Error", f"Failed to delete bytes: {e}")
-            self.app_instance.current_offset_display_label.config(text="Offset: N/A")
+            self.app_instance.status_bar.config(text=f"Delete failed: {e}")
 
     def _crop_selected_bytes(self):
         if self.selection_start_offset is None or self.selection_end_offset is None:
             messagebox.showinfo("Crop Bytes", "No bytes selected.")
-            self.app_instance.current_offset_display_label.config(text="Offset: N/A")
+            self.app_instance.status_bar.config(text="Crop failed: No bytes selected.")
             return
 
         start = self.selection_start_offset
         end = self.selection_end_offset + 1
+        num_cropped = end - start
 
         if not messagebox.askyesno("Confirm Crop",
-                                   f"Crop file to selected {end - start} bytes from 0x{start:08X} to 0x{self.selection_end_offset:08X}?\nThis will delete all *non-selected* bytes."):
+                                   f"Crop file to selected {num_cropped} bytes from 0x{start:08X} to 0x{self.selection_end_offset:08X}?\nThis will delete all *non-selected* bytes."):
+            self.app_instance.status_bar.config(text="Crop cancelled.")
             return
 
         try:
             self.file_data = self.file_data[start:end]
             self.load_file(self.file_data)
+            self.app_instance.file_size = len(self.file_data) # Update file size
+            self.app_instance._update_file_info() # Update file info panel
             self.goto_offset_and_display(0)
             self.app_instance.status_bar.config(
-                text=f"File cropped to {end - start} bytes.")
-            self.app_instance.current_offset_display_label.config(text=f"[Offset]: 0x00000000 (0 dec)")
+                text=f"File cropped to {num_cropped} bytes.")
         except Exception as e:
             messagebox.showerror("Error", f"Failed to crop bytes: {e}")
-            self.app_instance.current_offset_display_label.config(text="Offset: N/A")
+            self.app_instance.status_bar.config(text=f"Crop failed: {e}")
 
     def _export_selected_ascii(self):
         if self.selection_start_offset is None or self.selection_end_offset is None:
             messagebox.showinfo("Export", "No bytes selected for export.")
+            self.app_instance.status_bar.config(text="Export failed: No bytes selected.")
             return
 
         start = self.selection_start_offset
@@ -648,7 +681,9 @@ class HexTable(tk.Canvas):
             filetypes=[("Text Files", "*.txt"), ("All Files", "*.*")],
             parent=self.app_instance.root
         )
-        if not path: return
+        if not path:
+            self.app_instance.status_bar.config(text="ASCII export cancelled.")
+            return
 
         try:
             with open(path, "w", encoding="utf-8") as f:
@@ -658,10 +693,12 @@ class HexTable(tk.Canvas):
                 text=f"Exported {len(selected_bytes)} bytes as ASCII to {os.path.basename(path)}.")
         except Exception as e:
             messagebox.showerror("Export Error", f"Failed to export ASCII: {e}")
+            self.app_instance.status_bar.config(text=f"ASCII export failed: {e}")
 
     def _export_selected_hex(self):
         if self.selection_start_offset is None or self.selection_end_offset is None:
             messagebox.showinfo("Export", "No bytes selected for export.")
+            self.app_instance.status_bar.config(text="Export failed: No bytes selected.")
             return
 
         start = self.selection_start_offset
@@ -675,7 +712,9 @@ class HexTable(tk.Canvas):
             filetypes=[("Binary Files", "*.bin"), ("All Files", "*.*")],
             parent=self.app_instance.root
         )
-        if not path: return
+        if not path:
+            self.app_instance.status_bar.config(text="Binary export cancelled.")
+            return
 
         try:
             with open(path, "wb") as f:
@@ -685,13 +724,18 @@ class HexTable(tk.Canvas):
                 text=f"Exported {len(selected_bytes)} bytes as binary to {os.path.basename(path)}.")
         except Exception as e:
             messagebox.showerror("Export Error", f"Failed to export binary: {e}")
+            self.app_instance.status_bar.config(text=f"Binary export failed: {e}")
 
     def _start_edit(self, row, col, kind):
         idx = row * BYTES_PER_ROW + col
-        if idx >= len(self.file_data): return
+        if idx >= len(self.file_data):
+            self.app_instance.status_bar.config(text="Cannot edit past end of file.")
+            return
 
         bbox = self._calculate_drawn_cell_bbox(row, col, kind)
-        if not bbox: return
+        if not bbox:
+            self.app_instance.status_bar.config(text="Cannot edit: Cell not visible.")
+            return
 
         value = self.file_data[idx]
         text = f"{value:02X}" if kind == "hex" else chr(value) if 32 <= value < 127 else "."
@@ -723,33 +767,44 @@ class HexTable(tk.Canvas):
         self.edit_entry.bind("<FocusOut>", lambda e: self._close_edit(save=True), add="+")
         self.after(500, self._blink_cursor)
         self._redraw()
+        self.app_instance.status_bar.config(text=f"Editing byte at 0x{idx:08X}.")
 
     def _close_edit(self, save):
         if not self.editing: return
         if self.edit_entry is None: return
 
+        row, col, kind = self.selected
+        idx = row * BYTES_PER_ROW + col
+        old_value = self.file_data[idx] if idx < len(self.file_data) else None
+
         if save:
             try:
                 val = self.edit_entry.get()
-                row, col, kind = self.selected
-                idx = row * BYTES_PER_ROW + col
-                if idx < len(self.file_data):
+                if idx < len(self.file_data): # Ensure index is valid after potential modifications
                     if kind == "hex":
                         if not (len(val) == 2 and all(c in "0123456789abcdefABCDEF" for c in val.lower())):
                             raise ValueError("Invalid hex format (must be 2 hex digits)")
                         b = int(val, 16)
-                    else:
+                    else: # ASCII
                         if not val:
                             b = ord('.')
                         elif len(val) > 1:
                             b = ord(val[0])
                         else:
                             b = ord(val)
-                        if not (32 <= b < 127):
+                        if not (32 <= b < 127): # Ensure printable ASCII
                             b = ord(".")
                     self.file_data[idx] = b
-            except Exception:
-                pass
+                    if old_value is not None and old_value != b:
+                        self.app_instance.status_bar.config(text=f"Byte at 0x{idx:08X} changed from {old_value:02X} to {b:02X}.")
+                    else:
+                        self.app_instance.status_bar.config(text=f"Edit at 0x{idx:08X} saved (no change).")
+                else:
+                    self.app_instance.status_bar.config(text="Edit failed: Index out of bounds after file change.")
+            except Exception as e:
+                self.app_instance.status_bar.config(text=f"Edit failed: {e}. Value not saved.")
+        else:
+            self.app_instance.status_bar.config(text="Edit cancelled.")
 
         if self.edit_entry:
             self.edit_entry.destroy()
@@ -888,7 +943,7 @@ class HexEditorApp:
         root.title("« Hex Editor »")
         root.geometry("1400x800")
 
-        self.colors = PYTHONPLUS_THEME_COLORS
+        self.colors = PYTHONPLUS_THEME_COLORS # Default theme, will be overridden by config if present
         self._set_ttk_style()
         self.root.configure(bg=self.colors["PANEL_BG"])
 
@@ -897,26 +952,38 @@ class HexEditorApp:
 
         self.left_panel = tk.Frame(self.frame_main, width=270, bg=self.colors["PANEL_BG"])
         self.left_panel.pack(side="left", fill="y", padx=5, pady=5)
-        self._build_side_panel()
+        self._build_side_panel() # Builds most widgets, including those that need to be enabled/disabled
 
         self.hex_view_container = tk.Frame(self.frame_main, bg=self.colors["PANEL_BG"])
         self.hex_view_container.pack(side="left", fill="both", expand=1, padx=5, pady=5)
 
         self.hex_table = HexTable(self.hex_view_container, self)
         self.hex_table.pack(side="top", fill="both", expand=1)
-        self.hex_table.apply_theme(self.colors)
+        self.hex_table.apply_theme(self.colors) # Apply initial theme to hex_table
 
         self.page_nav_frame = ttk.Frame(self.hex_view_container, style="TFrame")
         self.page_nav_frame.pack(side="bottom", fill="x", pady=(2, 0))
 
-        ttk.Button(self.page_nav_frame, text="<< Top of File",
-                   command=lambda: self.hex_table.goto_offset_and_display(0)).pack(side="left", padx=2)
-        ttk.Button(self.page_nav_frame, text="< Previous Page", command=lambda: self.hex_table.scroll_pages(-1)).pack(
-            side="left", expand=True, padx=2)
-        ttk.Button(self.page_nav_frame, text="Next Page >", command=lambda: self.hex_table.scroll_pages(1)).pack(
-            side="right", expand=True, padx=2)
-        ttk.Button(self.page_nav_frame, text="End of File >>", command=self._goto_end_of_file).pack(side="right",
-                                                                                                    padx=2)
+        # 1. Add underlines for bottom panel (T, P, N, E) for top of file, previous pg, next pg and end of file.
+        # Removed explicit underlining from button style due to ttk.Button limitations.
+        # Instead, adding shortcut info to tooltips.
+        self.btn_top_file = ttk.Button(self.page_nav_frame, text="<< Top of File",
+                   command=lambda: self.hex_table.goto_offset_and_display(0))
+        self.btn_top_file.pack(side="left", padx=2)
+        ToolTip(self.btn_top_file, "Go to the Top of File (Ctrl+T)")
+
+        self.btn_prev_page = ttk.Button(self.page_nav_frame, text="< Previous Page", command=lambda: self.hex_table.scroll_pages(-1))
+        self.btn_prev_page.pack(side="left", expand=True, padx=2)
+        ToolTip(self.btn_prev_page, "Go to the Previous Page (Ctrl+P)")
+
+        self.btn_next_page = ttk.Button(self.page_nav_frame, text="Next Page >", command=lambda: self.hex_table.scroll_pages(1))
+        self.btn_next_page.pack(side="right", expand=True, padx=2)
+        ToolTip(self.btn_next_page, "Go to the Next Page (Ctrl+N)")
+
+        self.btn_end_file = ttk.Button(self.page_nav_frame, text="End of File >>", command=self._goto_end_of_file)
+        self.btn_end_file.pack(side="right", padx=2)
+        ToolTip(self.btn_end_file, "Go to the End of File (Ctrl+E)")
+
         self.current_offset_display_label = ttk.Label(self.page_nav_frame, text="Offset: N/A",
                                                       background=self.colors["PANEL_BG"],
                                                       foreground=self.colors["FG"], font=("Arial", 9))
@@ -928,11 +995,11 @@ class HexEditorApp:
 
         menubar = tk.Menu(root)
         fmenu = tk.Menu(menubar, tearoff=0)
-        fmenu.add_command(label="Open...", command=self.load_file)
+        fmenu.add_command(label="Open...", command=self.load_file, accelerator="Ctrl+O")
         fmenu.add_separator()
-        fmenu.add_command(label="Save As...", command=self.save_file_as)
+        fmenu.add_command(label="Save As...", command=self.save_file_as, accelerator="Ctrl+S")
         fmenu.add_separator()
-        fmenu.add_command(label="Exit", command=root.quit)
+        fmenu.add_command(label="Exit", command=root.quit, accelerator="Ctrl+Q")
         menubar.add_cascade(label="File", menu=fmenu)
 
         theme_menu = tk.Menu(menubar, tearoff=0)
@@ -950,10 +1017,10 @@ class HexEditorApp:
         util_menu.add_command(label="Dec to Hex", command=self.dec_to_hex)
         util_menu.add_separator()
         util_menu.add_command(label="Save Config", command=self.save_config)
-        util_menu.add_command(label="Load Config", command=self.load_config)
-        util_menu.add_separator()  # Add separator before ASCII table
-        util_menu.add_command(label="Show ASCII Table", command=self.show_ascii_table)  # Add ASCII table option
-        menubar.add_cascade(label="Util", menu=util_menu)
+        util_menu.add_command(label="Load Config", command=lambda: self.load_config(startup=False)) # Explicit call
+        util_menu.add_separator()
+        util_menu.add_command(label="Show ASCII Table", command=self.show_ascii_table)
+        menubar.add_cascade(label="Utils", menu=util_menu)
 
         root.config(menu=menubar)
 
@@ -966,7 +1033,40 @@ class HexEditorApp:
 
         self.hex_table.bind("<<HexSelection>>", self._on_hex_table_selection)
         self.hex_table.bind("<<HexScroll>>", self._on_hex_table_scroll)
-        # Removed automatic binding to <<HexSelection>> for show_ascii_table to avoid redundancy with menu option
+
+        # 2. Add functions for keypress to perform the functions with ctrl key
+        self._bind_shortcuts()
+
+        # 3. Add function to load config.dat info when starting prog
+        self.load_config(startup=True) # Load config on startup
+
+        # 5. Add option to exit via button.
+        self.exit_button = ttk.Button(self.left_panel, text="Exit Application", command=self.root.quit,
+                                      style="TButton")
+        self.exit_button.pack(side="bottom", fill="x", padx=3, pady=5)
+        ToolTip(self.exit_button, "Close the Hex Editor (Ctrl+Q)")
+        self.status_bar.config(text="Ready.")
+
+    def _bind_shortcuts(self):
+        # File operations
+        self.root.bind("<Control-o>", lambda e: self.load_file())
+        self.root.bind("<Control-s>", lambda e: self.save_file_as()) # No simple "Save" in current code
+        self.root.bind("<Control-q>", lambda e: self.root.quit())
+
+        # Navigation
+        self.root.bind("<Control-t>", lambda e: self.hex_table.goto_offset_and_display(0))
+        self.root.bind("<Control-p>", lambda e: self.hex_table.scroll_pages(-1))
+        self.root.bind("<Control-n>", lambda e: self.hex_table.scroll_pages(1))
+        self.root.bind("<Control-e>", lambda e: self._goto_end_of_file())
+
+        # Selection
+        self.root.bind("<Control-a>", lambda e: self.hex_table._select_all())
+
+        # Search/Go To
+        self.root.bind("<Control-f>", lambda e: self.search_entry_widget.focus_set())
+        self.root.bind("<Control-g>", lambda e: self.goto_entry_widget.focus_set())
+
+        self.status_bar.config(text="Keyboard shortcuts enabled (Ctrl+O, S, Q, T, P, N, E, A, F, G).")
 
     def _set_ttk_style(self):
         s = ttk.Style()
@@ -1010,6 +1110,7 @@ class HexEditorApp:
               background=[("active", self.colors["BUTTON_ACTIVE_BG"])],
               foreground=[("active", self.colors["FG"])])
 
+
     def _apply_theme(self, new_colors):
         self.colors = new_colors
         self.root.config(bg=self.colors["PANEL_BG"])
@@ -1018,7 +1119,7 @@ class HexEditorApp:
         self.left_panel.config(bg=self.colors["PANEL_BG"])
         self.hex_view_container.config(bg=self.colors["PANEL_BG"])
         self.status_bar.config(bg=self.colors["STATUS_BG"], fg=self.colors["STATUS_FG"])
-        self._set_ttk_style()
+        self._set_ttk_style() # Re-apply style to update all ttk widgets
         self.hex_table.apply_theme(self.colors)
 
         # Update inspector labels (values)
@@ -1064,6 +1165,7 @@ class HexEditorApp:
         )
 
         self._apply_menu_theme(self.root.nametowidget(self.root.cget("menu")))
+        self.status_bar.config(text=f"Theme changed to {self.colors.get('THEME_NAME', 'Custom Theme')}.") # Add a name to theme dicts or infer.
 
     def _apply_menu_theme(self, menu_widget):
         menu_widget.config(
@@ -1082,8 +1184,10 @@ class HexEditorApp:
     def _goto_end_of_file(self):
         if self.file_size > 0:
             self.hex_table.goto_offset_and_display(self.file_size - 1)
+            self.status_bar.config(text=f"Navigated to end of file (0x{self.file_size-1:08X}).")
         else:
             self.hex_table.goto_offset_and_display(0)
+            self.status_bar.config(text="File is empty. At offset 0x00000000.")
 
     def _on_hex_table_selection(self, event):
         if self.hex_table.selected:
@@ -1097,7 +1201,7 @@ class HexEditorApp:
             self.current_addr_label.config(text="0x00000000")
             self.current_offset_display_label.config(text="Offset: N/A")
             self.update_inspector(0)
-            self._update_status_bar_info(0)
+            self._update_status_bar_info(0) # Update status bar for no selection
 
     def _on_hex_table_scroll(self, event):
         offset = self.hex_table.current_display_offset
@@ -1117,7 +1221,7 @@ class HexEditorApp:
         if len(self.hex_table.file_data) > 0:
             byte_at_offset = self.hex_table.file_data[offset]
             ascii_char = chr(byte_at_offset) if 32 <= byte_at_offset < 127 else '.'
-            self.status_bar.config(text=f"Offset: 0x{offset:08X} | ASCII: '{ascii_char}'")
+            self.status_bar.config(text=f"Offset: 0x{offset:08X} | ASCII: '{ascii_char}' (0x{byte_at_offset:02X})")
             self.current_offset_display_label.config(text=f"Offset: 0x{offset:08X} ({offset} dec)")
         else:
             self.status_bar.config(text="Offset: 0x00000000 | ASCII: '.' (Empty File)")
@@ -1177,7 +1281,7 @@ class HexEditorApp:
         goto.pack(fill="x", padx=3, pady=5)
         self.current_addr_label = ttk.Label(goto, background=self.colors["PANEL_BG"],
                                             foreground=self.colors["OFFSET_COLOR"], font=("Consolas", 10, "bold"))
-        # self.current_addr_label.pack(fill="x", padx=2, pady=1)
+        # self.current_addr_label.pack(fill="x", padx=2, pady=1) # This label is not actually used in this frame, only in the status bar
 
         self.last_replaced_offset_label = ttk.Label(goto, text="Last Replaced: N/A", background=self.colors["PANEL_BG"],
                                                     foreground=self.colors["FG"], font=("Arial", 8))
@@ -1268,6 +1372,7 @@ class HexEditorApp:
                                                 state="disabled")
         self.offset_replace_button.pack(fill="x", padx=2, pady=2)
         ToolTip(self.offset_repl_entry_widget, "Enter a single byte value (e.g., '65' or '0A').")
+        # Exit button is added at the end of __init__ to ensure it's at the bottom
 
     def update_inspector(self, sel_offset):
         fd = self.hex_table.file_data
@@ -1293,8 +1398,11 @@ class HexEditorApp:
             except (struct.error, IndexError):
                 pass
             try:
-                self.inspector_labels["16-bit Float"].config(
-                    text=str(struct.unpack('<e', chunk[:2])[0]))
+                # Python's struct module doesn't have a direct 'half-precision float' type ('e')
+                # It's usually supported in numpy or via custom conversion.
+                # Removing this as it's not standard struct.
+                # self.inspector_labels["16-bit Float"].config(text=str(struct.unpack('<e', chunk[:2])[0]))
+                self.inspector_labels["16-bit Float"].config(text="N/A") # Placeholder
             except (struct.error, IndexError):
                 pass
 
@@ -1319,6 +1427,7 @@ class HexEditorApp:
                     text=str(struct.unpack('<d', chunk[:8])[0]))
             except (struct.error, IndexError):
                 pass
+        self.status_bar.config(text=f"Inspector updated for offset 0x{sel_offset:08X}.")
 
     def load_file(self):
         filetypes = [
@@ -1329,6 +1438,7 @@ class HexEditorApp:
         ]
         path = filedialog.askopenfilename(title="Open File", filetypes=filetypes, defaultextension=".exe")
         if not path:
+            self.status_bar.config(text="File open cancelled.")
             return
         try:
             with open(path, "rb") as f:
@@ -1337,13 +1447,16 @@ class HexEditorApp:
             if not data:
                 messagebox.showwarning("Warning", "File is empty.")
                 self.hex_table.load_file(b'')
+                self.file_path = path # Still keep path for context
+                self.file_size = 0
+                self._update_file_info()
                 self.status_bar.config(text=f"Opened empty file: {os.path.basename(path)}")
-                self.current_offset_display_label.config(text="Offset: N/A")
                 # Disable buttons for empty file
                 self.search_button.config(state="disabled")
                 self.search_replace_button.config(state="disabled")
                 self.offset_replace_button.config(state="disabled")
-                self.goto_button.config(state="disabled")  # Disable Go button
+                self.goto_button.config(state="disabled")
+                self.current_offset_display_label.config(text="Offset: N/A")
                 return
 
             self.hex_table.load_file(data)
@@ -1351,23 +1464,24 @@ class HexEditorApp:
             self.file_size = len(data)
             self._update_file_info()
             self.status_bar.config(text=f"Opened {os.path.basename(path)} (Size: {self.file_size} bytes).")
-            self.current_offset_display_label.config(text="[Offset]: 0x00000000 (0 dec)")
             if self.hex_table.total_rows > 0:
                 self.hex_table.selected = (0, 0, "hex")
                 self.hex_table.selection_start_offset = 0
                 self.hex_table.selection_end_offset = 0
+                self.hex_table.goto_offset_and_display(0) # Triggers selection/scroll event for status bar
             else:
                 self.hex_table.selected = None
                 self.hex_table.selection_start_offset = None
                 self.hex_table.selection_end_offset = None
+                self.current_addr_label.config(text="0x00000000")
+                self.current_offset_display_label.config(text="Offset: N/A")
+                self.update_inspector(0)
             self.hex_table._redraw()
-            self.current_addr_label.config(text="0x00000000")
-            self.update_inspector(0)
             # Enable buttons when a file is loaded
             self.search_button.config(state="normal")
             self.search_replace_button.config(state="normal")
             self.offset_replace_button.config(state="normal")
-            self.goto_button.config(state="normal")  # Enable Go button
+            self.goto_button.config(state="normal")
         except MemoryError:
             messagebox.showerror("Error", f"File '{os.path.basename(path)}' is too large to load into memory.")
             self.status_bar.config(text="Failed: File too large.")
@@ -1375,7 +1489,7 @@ class HexEditorApp:
             self.search_button.config(state="disabled")
             self.search_replace_button.config(state="disabled")
             self.offset_replace_button.config(state="disabled")
-            self.goto_button.config(state="disabled")  # Disable Go button
+            self.goto_button.config(state="disabled")
         except Exception as e:
             messagebox.showerror("Error", f"Failed to load file '{os.path.basename(path)}': {str(e)}")
             self.status_bar.config(text="Failed to load file.")
@@ -1383,12 +1497,13 @@ class HexEditorApp:
             self.search_button.config(state="disabled")
             self.search_replace_button.config(state="disabled")
             self.offset_replace_button.config(state="disabled")
-            self.goto_button.config(state="disabled")  # Disable Go button
+            self.goto_button.config(state="disabled")
 
 
     def save_file_as(self):
         if not self.file_path and not self.hex_table.file_data:
             messagebox.showinfo("Save As", "No file loaded or data to save.")
+            self.status_bar.config(text="Save As cancelled: No data to save.")
             return
 
         initial_dir = os.path.dirname(self.file_path) if self.file_path else os.getcwd()
@@ -1414,6 +1529,7 @@ class HexEditorApp:
         )
 
         if not path:
+            self.status_bar.config(text="Save As cancelled by user.")
             return
 
         try:
@@ -1480,9 +1596,9 @@ class HexEditorApp:
         self.file_type_label.config(text=f"Type: {file_type_desc}")
 
         self.md5_label.config(text="MD5 Hash: Calculating...")
-        self.root.update_idletasks()
+        self.root.update_idletasks() # Force update to show "Calculating..."
         try:
-            if os.path.exists(fp) and self.file_size < 100 * 1024 * 1024:
+            if os.path.exists(fp) and self.file_size < 100 * 1024 * 1024: # Limit MD5 for very large files
                 md5 = hashlib.md5()
                 with open(fp, "rb") as f:
                     for chunk in iter(lambda: f.read(4096), b""):
@@ -1494,12 +1610,14 @@ class HexEditorApp:
                 self.md5_label.config(text="MD5 Hash: N/A")
         except Exception:
             self.md5_label.config(text="MD5 Hash: N/A")
+        self.status_bar.config(text=f"File info updated for {os.path.basename(fp)}.")
 
     def goto_offset(self):
         try:
             offset_str = self.goto_var.get().strip()
             if not offset_str:
                 messagebox.showwarning("Warning", "Please enter an offset.")
+                self.status_bar.config(text="Go To failed: No offset entered.")
                 return
 
             if offset_str.lower().startswith("0x"):
@@ -1509,13 +1627,16 @@ class HexEditorApp:
 
             if 0 <= offset < len(self.hex_table.file_data):
                 self.hex_table.goto_offset_and_display(offset)
-                self.current_offset_display_label.config(text=f"Offset: 0x{offset:08X} ({offset} dec)")
+                self.status_bar.config(text=f"Navigated to offset 0x{offset:08X}.")
             else:
                 messagebox.showwarning("Invalid Offset", "Offset is out of file bounds.")
+                self.status_bar.config(text="Go To failed: Offset out of bounds.")
         except ValueError:
             messagebox.showerror("Error", "Invalid offset format. Please use hex (e.g., 0x1A) or decimal.")
+            self.status_bar.config(text="Go To failed: Invalid offset format.")
         except Exception as e:
             messagebox.showerror("Error", f"An unexpected error occurred: {str(e)}")
+            self.status_bar.config(text=f"Go To failed: {e}")
 
     def search_bytes(self):
         s = self.search_var.get().strip()
@@ -1534,6 +1655,7 @@ class HexEditorApp:
                 s = s.replace(" ", "")
                 if len(s) % 2 != 0:
                     messagebox.showerror("Error", "Hex search string must have an even number of characters.")
+                    self.status_bar.config(text="Search failed: Invalid hex string length.")
                     return
                 search_bytes = bytes.fromhex(s)
             else:  # ASCII
@@ -1541,6 +1663,7 @@ class HexEditorApp:
 
             self.search_matches.clear()
             self.current_match_idx = -1
+            self.hex_table.match_length = len(search_bytes) # Store the length for highlighting
 
             for i in range(len(data) - len(search_bytes) + 1):
                 if data[i:i + len(search_bytes)] == search_bytes:
@@ -1550,17 +1673,16 @@ class HexEditorApp:
                 self.current_match_idx = 0
                 self._highlight_match()
                 self.status_bar.config(text=f"Found {len(self.search_matches)} matches.")
-                self.current_offset_display_label.config(
-                    text=f"Offset: 0x{self.search_matches[self.current_match_idx]:08X} ({self.search_matches[self.current_match_idx]} dec)")
             else:
                 self.status_bar.config(text="No matches found.")
-                self.current_offset_display_label.config(text="Offset: N/A")
             self._show_search_result()
 
         except ValueError:
             messagebox.showerror("Error", "Invalid search format. Use hex (e.g., '0A B2') or ASCII text.")
+            self.status_bar.config(text="Search failed: Invalid format.")
         except Exception as e:
             messagebox.showerror("Error", f"An unexpected error occurred: {str(e)}")
+            self.status_bar.config(text=f"Search failed: {e}")
 
     def _highlight_match(self):
         if not self.search_matches or self.current_match_idx < 0:
@@ -1571,46 +1693,39 @@ class HexEditorApp:
             return
 
         match_offset = self.search_matches[self.current_match_idx]
-        # Use the stored match_length instead of recalculating
-        match_length = getattr(self.hex_table, 'match_length', 1)  # Default to 1 if not set
+        match_length = getattr(self.hex_table, 'match_length', 1)
 
         self.hex_table.selection_start_offset = match_offset
         self.hex_table.selection_end_offset = match_offset + match_length - 1
         self.hex_table.selected = (match_offset // BYTES_PER_ROW, match_offset % BYTES_PER_ROW, "hex")
         self.hex_table.goto_offset_and_display(match_offset)
-        self.current_offset_display_label.config(text=f"Offset: 0x{match_offset:08X} ({match_offset} dec)")
+        # Status bar update for highlighting is part of goto_offset_and_display via event
 
     def _show_search_result(self):
         total = len(self.search_matches)
         current = self.current_match_idx + 1 if self.current_match_idx >= 0 else 0
         self.match_count_label.config(text=f"Matches: {current}/{total}")
-        if total > 0:
-            self.current_offset_display_label.config(
-                text=f"Offset: 0x{self.search_matches[self.current_match_idx]:08X} ({self.search_matches[self.current_match_idx]} dec)")
-        else:
-            self.current_offset_display_label.config(text="Offset: N/A")
+        # Status bar is updated by _highlight_match which calls goto_offset_and_display
 
     def search_next(self):
         if not self.search_matches:
             self.status_bar.config(text="No matches to navigate.")
-            self.current_offset_display_label.config(text="Offset: N/A")
             return
 
         self.current_match_idx = (self.current_match_idx + 1) % len(self.search_matches)
         self._highlight_match()
         self._show_search_result()
-        self.status_bar.config(text=f"Match {self.current_match_idx + 1} of {len(self.search_matches)}.")
+        self.status_bar.config(text=f"Moved to match {self.current_match_idx + 1} of {len(self.search_matches)}.")
 
     def search_prev(self):
         if not self.search_matches:
             self.status_bar.config(text="No matches to navigate.")
-            self.current_offset_display_label.config(text="Offset: N/A")
             return
 
-        self.current_match_idx = (self.current_match_idx - 1) % len(self.search_matches)
+        self.current_match_idx = (self.current_match_idx - 1 + len(self.search_matches)) % len(self.search_matches)
         self._highlight_match()
         self._show_search_result()
-        self.status_bar.config(text=f"Match {self.current_match_idx + 1} of {len(self.search_matches)}.")
+        self.status_bar.config(text=f"Moved to match {self.current_match_idx + 1} of {len(self.search_matches)}.")
 
     def search_and_replace(self):
         s = self.search_var.get().strip()
@@ -1620,6 +1735,7 @@ class HexEditorApp:
 
         if not s or not r:
             messagebox.showwarning("Warning", "Search and replace fields cannot be empty.")
+            self.status_bar.config(text="Replace failed: Search/Replace fields empty.")
             return
 
         try:
@@ -1628,6 +1744,7 @@ class HexEditorApp:
                 r = r.replace(" ", "")
                 if len(s) % 2 != 0 or len(r) % 2 != 0:
                     messagebox.showerror("Error", "Hex strings must have an even number of characters.")
+                    self.status_bar.config(text="Replace failed: Invalid hex string length.")
                     return
                 search_bytes = bytes.fromhex(s)
                 replace_bytes = bytes.fromhex(r)
@@ -1637,10 +1754,12 @@ class HexEditorApp:
 
             if len(search_bytes) != len(replace_bytes):
                 messagebox.showerror("Error", "Search and replace patterns must be the same length.")
+                self.status_bar.config(text="Replace failed: Patterns must be same length.")
                 return
 
             self.search_matches.clear()
             self.current_match_idx = -1
+            self.hex_table.match_length = len(search_bytes) # Store the length for highlighting
 
             for i in range(len(data) - len(search_bytes) + 1):
                 if data[i:i + len(search_bytes)] == search_bytes:
@@ -1649,11 +1768,12 @@ class HexEditorApp:
             if not self.search_matches:
                 self.status_bar.config(text="No matches found for replacement.")
                 self._show_search_result()
-                self.current_offset_display_label.config(text="Offset: N/A")
                 return
 
+            num_replacements = len(self.search_matches)
             if not messagebox.askyesno("Confirm Replace",
-                                       f"Replace {len(self.search_matches)} matches of '{s}' with '{r}'?"):
+                                       f"Replace {num_replacements} matches of '{s}' with '{r}'?"):
+                self.status_bar.config(text="Replace cancelled.")
                 return
 
             new_data = bytearray(data)
@@ -1661,21 +1781,19 @@ class HexEditorApp:
                 new_data[match_offset:match_offset + len(replace_bytes)] = replace_bytes
 
             self.hex_table.load_file(new_data)
-            self.status_bar.config(text=f"Replaced {len(self.search_matches)} matches.")
+            self.file_size = len(new_data) # Update file size
+            self._update_file_info() # Update file info panel
+            self.status_bar.config(text=f"Replaced {num_replacements} matches.")
             self.current_match_idx = 0
-            # Pass the actual byte length to _highlight_match
-            self.hex_table.match_length = len(search_bytes)  # Store the byte length
             self._highlight_match()
             self._show_search_result()
-            self.current_offset_display_label.config(
-                text=f"Offset: 0x{self.search_matches[self.current_match_idx]:08X} ({self.search_matches[self.current_match_idx]} dec)")
 
         except ValueError:
             messagebox.showerror("Error", "Invalid format in search or replace field.")
+            self.status_bar.config(text="Replace failed: Invalid format.")
         except Exception as e:
             messagebox.showerror("Error", f"An unexpected error occurred: {str(e)}")
-
-    import json
+            self.status_bar.config(text=f"Replace failed: {e}")
 
     def hex_to_dec(self):
         hex_str = simpledialog.askstring("Hex to Decimal", "Enter hex value (e.g., 1A or 0x1A):", parent=self.root)
@@ -1684,9 +1802,14 @@ class HexEditorApp:
                 if hex_str.lower().startswith("0x"):
                     hex_str = hex_str[2:]
                 dec_value = int(hex_str, 16)
-                messagebox.showinfo("Result", f"Hex {hex_str} = Decimal {dec_value}")
+                messagebox.showinfo("Result", f"Hex {hex_str.upper()} = Decimal {dec_value}")
+                self.status_bar.config(text=f"Converted Hex {hex_str.upper()} to Decimal {dec_value}.")
             except ValueError:
                 messagebox.showerror("Error", "Invalid hex value.")
+                self.status_bar.config(text="Hex to Dec failed: Invalid hex value.")
+        else:
+            self.status_bar.config(text="Hex to Dec cancelled.")
+
 
     def dec_to_hex(self):
         dec_str = simpledialog.askstring("Decimal to Hex", "Enter decimal value (0-255):", parent=self.root)
@@ -1696,69 +1819,133 @@ class HexEditorApp:
                 if 0 <= dec_value <= 255:
                     hex_value = f"{dec_value:02X}"
                     messagebox.showinfo("Result", f"Decimal {dec_value} = Hex 0x{hex_value}")
+                    self.status_bar.config(text=f"Converted Decimal {dec_value} to Hex 0x{hex_value}.")
                 else:
                     messagebox.showerror("Error", "Value must be between 0 and 255.")
+                    self.status_bar.config(text="Dec to Hex failed: Value out of range.")
             except ValueError:
                 messagebox.showerror("Error", "Invalid decimal value.")
+                self.status_bar.config(text="Dec to Hex failed: Invalid decimal value.")
+        else:
+            self.status_bar.config(text="Dec to Hex cancelled.")
 
     def save_config(self):
+        # Map theme dict to its string name for saving
+        theme_name_map = {
+            id(LIGHT_THEME_COLORS): "LIGHT_THEME_COLORS",
+            id(PYTHONPLUS_THEME_COLORS): "PYTHONPLUS_THEME_COLORS",
+            id(DARKAMBER1_THEME_COLORS): "DARKAMBER1_THEME_COLORS",
+            id(COLORFUL_THEME_COLORS): "COLORFUL_THEME_COLORS"
+        }
+        current_theme_name = theme_name_map.get(id(self.colors), "PYTHONPLUS_THEME_COLORS")
+
         config = {
             "file_path": self.file_path if self.file_path else "",
-            "theme": self.colors.__name__ if hasattr(self.colors, '__name__') else "PYTHONPLUS_THEME_COLORS",
+            "theme": current_theme_name,
             "current_file_pos": self.hex_table.current_display_offset if self.hex_table.file_data else 0,
             "current_file_size": self.file_size,
             "created_date": self.created_label.cget("text") if self.created_label.cget("text") != "N/A" else "",
             "modified_date": self.modified_label.cget("text") if self.modified_label.cget("text") != "N/A" else ""
         }
-        with open("config.dat", "w") as f:
-            json.dump(config, f)
-        messagebox.showinfo("Save Config", "Configuration saved to config.dat")
+        try:
+            with open("config.dat", "w") as f:
+                json.dump(config, f, indent=4) # Use indent for readability
+            messagebox.showinfo("Save Config", "Configuration saved to config.dat")
+            self.status_bar.config(text="Configuration saved.")
+        except Exception as e:
+            messagebox.showerror("Save Config Error", f"Failed to save config: {e}")
+            self.status_bar.config(text="Failed to save configuration.")
 
-    def load_config(self):
-        if os.path.exists("config.dat"):
-            with open("config.dat", "r") as f:
-                config = json.load(f)
+    def load_config(self, startup=False): # Added startup parameter
+        config_file_path = "config.dat"
+        if os.path.exists(config_file_path):
+            try:
+                with open(config_file_path, "r") as f:
+                    config = json.load(f)
 
-            self.file_path = config.get("file_path", "")
-            if self.file_path and os.path.exists(self.file_path):
-                try:
-                    with open(self.file_path, "rb") as f:
-                        data = f.read()
-                    self.hex_table.load_file(data)
-                    self.file_size = len(data)
-                    self._update_file_info()
-                    self.hex_table.goto_offset_and_display(config.get("current_file_pos", 0))
-                    self.status_bar.config(
-                        text=f"Loaded {os.path.basename(self.file_path)} (Size: {self.file_size} bytes).")
-                    # Enable buttons when a file is loaded
-                    self.search_button.config(state="normal")
-                    self.search_replace_button.config(state="normal")
-                    self.offset_replace_button.config(state="normal")
-                    self.goto_button.config(state="normal")
-                except Exception as e:
-                    messagebox.showerror("Error", f"Failed to load file: {str(e)}")
-                    self.status_bar.config(text="Failed to load file.")
+                # 1. Apply Theme first
+                theme_map = {
+                    "LIGHT_THEME_COLORS": LIGHT_THEME_COLORS,
+                    "PYTHONPLUS_THEME_COLORS": PYTHONPLUS_THEME_COLORS,
+                    "DARKAMBER1_THEME_COLORS": DARKAMBER1_THEME_COLORS,
+                    "COLORFUL_THEME_COLORS": COLORFUL_THEME_COLORS
+                }
+                chosen_theme = theme_map.get(config.get("theme", "PYTHONPLUS_THEME_COLORS"), PYTHONPLUS_THEME_COLORS)
+                self._apply_theme(chosen_theme)
+                self.status_bar.config(text="Configuration loaded. Applied theme.")
 
-            theme_map = {
-                "LIGHT_THEME_COLORS": LIGHT_THEME_COLORS,
-                "PYTHONPLUS_THEME_COLORS": PYTHONPLUS_THEME_COLORS,
-                "DARKAMBER1_THEME_COLORS": DARKAMBER1_THEME_COLORS,
-                "COLORFUL_THEME_COLORS": COLORFUL_THEME_COLORS
-            }
-            self._apply_theme(theme_map.get(config.get("theme", "PYTHONPLUS_THEME_COLORS"), PYTHONPLUS_THEME_COLORS))
 
-            self.created_label.config(text=config.get("created_date", "N/A"))
-            self.modified_label.config(text=config.get("modified_date", "N/A"))
-            self.file_size_label.config(
-                text=f"Size: 0x{config.get('current_file_size', 0):08X} ({config.get('current_file_size', 0)} bytes)")
+                # 2. Load File (if specified and exists)
+                file_to_load = config.get("file_path", "")
+                if file_to_load:
+                    if os.path.exists(file_to_load):
+                        try:
+                            with open(file_to_load, "rb") as f:
+                                data = f.read()
+                            self.hex_table.load_file(data)
+                            self.file_path = file_to_load
+                            self.file_size = len(data)
+                            self._update_file_info()
+                            self.hex_table.goto_offset_and_display(config.get("current_file_pos", 0))
+                            self.status_bar.config(
+                                text=f"Loaded {os.path.basename(self.file_path)} (Size: {self.file_size} bytes) from config.")
+                            self.search_button.config(state="normal")
+                            self.search_replace_button.config(state="normal")
+                            self.offset_replace_button.config(state="normal")
+                            self.goto_button.config(state="normal")
+                        except Exception as e:
+                            messagebox.showerror("Error", f"Failed to load configured file '{os.path.basename(file_to_load)}': {str(e)}")
+                            self.status_bar.config(text="Failed to load configured file. Only theme applied.")
+                            # Still disable buttons if file loading failed
+                            self.search_button.config(state="disabled")
+                            self.search_replace_button.config(state="disabled")
+                            self.offset_replace_button.config(state="disabled")
+                            self.goto_button.config(state="disabled")
+                            self.file_path = None # Clear file path if load failed
+                    else:
+                        messagebox.showwarning("Config Load", f"Configured file '{os.path.basename(file_to_load)}' not found. Only theme loaded.")
+                        self.status_bar.config(text=f"Configured file '{os.path.basename(file_to_load)}' missing. Theme loaded.")
+                        # Ensure buttons are disabled if the file is missing
+                        self.search_button.config(state="disabled")
+                        self.search_replace_button.config(state="disabled")
+                        self.offset_replace_button.config(state="disabled")
+                        self.goto_button.config(state="disabled")
+                        self.file_path = None # Clear file path if file is missing
+                else: # No file path in config, or empty string
+                    self.status_bar.config(text="Configuration loaded. No file path specified in config.")
+                    # Ensure buttons are disabled if no file was loaded
+                    self.search_button.config(state="disabled")
+                    self.search_replace_button.config(state="disabled")
+                    self.offset_replace_button.config(state="disabled")
+                    self.goto_button.config(state="disabled")
+
+                # Update other info if available, even if file load failed
+                self.created_label.config(text=config.get("created_date", "N/A"))
+                self.modified_label.config(text=config.get("modified_date", "N/A"))
+                self.file_size_label.config(
+                    text=f"Size: 0x{config.get('current_file_size', 0):08X} ({config.get('current_file_size', 0)} bytes)")
+            except json.JSONDecodeError:
+                messagebox.showerror("Error", "config.dat is corrupted. Could not load.")
+                self.status_bar.config(text="Error: config.dat corrupted. Default theme applied.")
+            except Exception as e:
+                messagebox.showerror("Error", f"An unexpected error occurred while loading config: {str(e)}")
+                self.status_bar.config(text="Error loading config. Default theme applied.")
         else:
-            messagebox.showwarning("Load Config", "No config.dat file found.")
+            if not startup: # Only show message if user explicitly tried to load
+                messagebox.showwarning("Load Config", "No config.dat file found.")
+            self.status_bar.config(text="No config.dat found. Default theme applied.")
+            # Ensure buttons are disabled if no file was loaded
+            self.search_button.config(state="disabled")
+            self.search_replace_button.config(state="disabled")
+            self.offset_replace_button.config(state="disabled")
+            self.goto_button.config(state="disabled")
+            self.file_path = None # No file loaded
 
     def show_ascii_table(self, event=None):
         import tkinter.font as tkfont
         ascii_window = tk.Toplevel(self.root)
         ascii_window.title("ASCII Table")
-        ascii_window.geometry("1024x768")
+        ascii_window.geometry("1024x400")
 
         default_font = tkfont.Font(family="Courier New", size=18, weight="bold")
         ascii_window.option_add("*Font", default_font)
@@ -1792,12 +1979,14 @@ class HexEditorApp:
         def on_cell_click(event, value):
             selected_value[0] = value
             update_highlight()
-            ascii_window.title(f"ASCII Table - Selected {value}")
+            ascii_window.title(f"ASCII Table - Selected: Dec {value} (Hex 0x{value:02X})")
+            self.status_bar.config(text=f"ASCII Table: Selected Dec {value} (Hex 0x{value:02X}).")
 
         def on_cell_right_click(event, value):
             selected_value[0] = value
             update_highlight()
             context_menu.post(event.x_root, event.y_root)
+            self.status_bar.config(text=f"ASCII Table: Context menu opened for Dec {value}.")
 
         def update_highlight():
             for rid in rect_ids.values():
@@ -1807,11 +1996,13 @@ class HexEditorApp:
                 canvas.itemconfig(rid, fill=self.colors["HEX_SEL_COLOR"])
 
         def copy_values(value):
-            hex_value = hex(value)
+            hex_value = f"0x{value:02X}"
             dec_value = str(value)
-            combined_value = f"{hex_value}, {dec_value}"
+            char_value = chr(value) if 32 <= value < 127 else '.'
+            combined_value = f"Dec: {dec_value}, Hex: {hex_value}, Char: '{char_value}'"
             ascii_window.clipboard_clear()
             ascii_window.clipboard_append(combined_value)
+            self.status_bar.config(text=f"ASCII Table: Copied {combined_value} to clipboard.")
 
         box_w, box_h = 45, 60
         pad_x, pad_y = 12, 12
@@ -1843,6 +2034,8 @@ class HexEditorApp:
         canvas.configure(scrollregion=canvas.bbox("all"))
         ascii_window.transient(self.root)
         ascii_window.grab_set()
+        self.status_bar.config(text="ASCII Table opened.")
+
 
     def offset_replace(self):
         try:
@@ -1851,6 +2044,7 @@ class HexEditorApp:
 
             if not offset_str or not repl_str:
                 messagebox.showwarning("Warning", "Offset and replacement value cannot be empty.")
+                self.status_bar.config(text="Offset Replace failed: Fields empty.")
                 return
 
             if offset_str.lower().startswith("0x"):
@@ -1860,6 +2054,7 @@ class HexEditorApp:
 
             if not (0 <= offset < len(self.hex_table.file_data)):
                 messagebox.showwarning("Invalid Offset", "Offset is out of file bounds.")
+                self.status_bar.config(text="Offset Replace failed: Offset out of bounds.")
                 return
 
             if len(repl_str) == 2 and all(c in "0123456789abcdefABCDEF" for c in repl_str.lower()):
@@ -1868,19 +2063,21 @@ class HexEditorApp:
                 repl_value = int(repl_str)
             else:
                 messagebox.showerror("Error", "Replacement must be a hex byte (e.g., '0A') or decimal (0-255).")
+                self.status_bar.config(text="Offset Replace failed: Invalid replacement format.")
                 return
 
+            old_value = self.hex_table.file_data[offset]
             self.hex_table.file_data[offset] = repl_value
             self.hex_table._redraw()
             self.last_replaced_offset_label.config(text=f"Last Replaced: 0x{offset:08X}")
-            self.current_offset_display_label.config(text=f"Offset: 0x{offset:08X} ({offset} dec)")
-            self.hex_table.goto_offset_and_display(offset)
-            self.status_bar.config(text=f"Replaced byte at 0x{offset:08X} with {repl_value:02X}.")
+            self.hex_table.goto_offset_and_display(offset) # This triggers selection/scroll update for status bar
+            self.status_bar.config(text=f"Replaced byte at 0x{offset:08X} from {old_value:02X} to {repl_value:02X}.")
         except ValueError:
             messagebox.showerror("Error", "Invalid offset or replacement format.")
+            self.status_bar.config(text="Offset Replace failed: Invalid input.")
         except Exception as e:
             messagebox.showerror("Error", f"An error occurred: {str(e)}")
-
+            self.status_bar.config(text=f"Offset Replace failed: {e}")
 
 
 if __name__ == "__main__":
