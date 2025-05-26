@@ -109,3 +109,11 @@ No external libraries are required beyond the Python standard library.
 ## Configuration
 
 The application can save and load some basic configuration settings (last opened file, theme, last view position) to a `config.dat` file in the same directory as the script. This is handled via the **"Utils"** menu.
+
+## License ##
+
+The program is distributed as per the MIT License
+
+## Author ##
+
+This program was designed by `Shuvro Basu` (c) 2025.
