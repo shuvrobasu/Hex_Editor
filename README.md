@@ -47,7 +47,8 @@
     *   Replace found sequences with new byte patterns (must be of the same length).
     *   Displays the count of matches.
     *   Dedicated "Search Results" listbox for quick jumps to matches.
-    | ![image](https://github.com/user-attachments/assets/14cce620-50eb-42a7-9c76-49b501f14648) |
+      
+    | ![image](https://github.com/user-attachments/assets/14cce620-50eb-42a7-9c76-49b501f14648) | |
 
 
 *   **Offset-Specific Replace (Moved to Right Panel):**
