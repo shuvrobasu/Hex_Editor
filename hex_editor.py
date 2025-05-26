@@ -7,36 +7,41 @@ import datetime
 import json
 import tkinter.font as tkfont
 
-# --- THEME COLOR DEFINITIONS ---
+# Constants and Theme Colors
+BYTES_PER_ROW = 16
+ASCII_FONT = ("Segoe UI", 11)
+HEX_FONT = ("Terminal", 11)
+ROW_H = 22
+CELL_W = 34
+ASCII_W = 15
+LINE_NUM_COL_W = 90
 
-# Light Theme Colors
 LIGHT_THEME_COLORS = {
-    "BG": "#f0f0f0",  # Main canvas background
-    "FG": "#333333",  # General text foreground
-    "PANEL_BG": "#e9e9e9",  # Side panel background
-    "PANEL_FG": "#1a1a1a",  # Panel titles
-    "STATUS_BG": "#d0d0d0",  # Status bar background
-    "STATUS_FG": "#000000",  # Status bar foreground
-    "OFFSET_BG": "#e0e0e0",  # Offset column background
-    "OFFSET_COLOR": "#007bff",  # Offset text (blue)
-    "HEX_CELL_EVEN_BG": "#fcfcfc",  # Hex cell background (even)
-    "HEX_CELL_ODD_BG": "#f5f5f5",  # Hex cell background (odd)
-    "HEX_CELL_OUTLINE": "#cccccc",  # Cell borders
-    "HEX_VALUE_COLOR": "#222222",  # Hex value text
-    "ASCII_BG": "#000000",  # ASCII column background
-    "ACCENT": "#28a745",  # ASCII character text (green)
-    "HEX_SEL_COLOR": "#d8f51b",  # Selected cell highlight (light blue)
-    "CURSOR_COLOR": "#ffc107",  # Editing cursor/border (orange/gold)
-    "EDIT_BG": "#ffffff",  # Entry widget background
-    "EDIT_FG": "#000000",  # Entry widget foreground
-    "EDIT_CURSOR": "#dc3545",  # Entry widget cursor (red)
-    "BUTTON_BG": "#e0e0e0",  # Button background
-    "BUTTON_FG": "#333333",  # Button foreground
-    "BUTTON_ACTIVE_BG": "#d5d5d5",  # Button active background
-    "RANGE_SEL_COLOR": "#99ccff"  # Background for selected range
+    "BG": "#f0f0f0",
+    "FG": "#333333",
+    "PANEL_BG": "#e9e9e9",
+    "PANEL_FG": "#1a1a1a",
+    "STATUS_BG": "#d0d0d0",
+    "STATUS_FG": "#000000",
+    "OFFSET_BG": "#e0e0e0",
+    "OFFSET_COLOR": "#007bff",
+    "HEX_CELL_EVEN_BG": "#fcfcfc",
+    "HEX_CELL_ODD_BG": "#f5f5f5",
+    "HEX_CELL_OUTLINE": "#cccccc",
+    "HEX_VALUE_COLOR": "#222222",
+    "ASCII_BG": "#000000",
+    "ACCENT": "#28a745",
+    "HEX_SEL_COLOR": "#d8f51b",
+    "CURSOR_COLOR": "#ffc107",
+    "EDIT_BG": "#ffffff",
+    "EDIT_FG": "#000000",
+    "EDIT_CURSOR": "#dc3545",
+    "BUTTON_BG": "#e0e0e0",
+    "BUTTON_FG": "#333333",
+    "BUTTON_ACTIVE_BG": "#d5d5d5",
+    "RANGE_SEL_COLOR": "#99ccff"
 }
 
-# PythonPlus Theme Colors (Renamed from Blue Theme)
 PYTHONPLUS_THEME_COLORS = {
     "BG": "#0d1b2a",
     "FG": "#e0e0e0",
@@ -63,68 +68,57 @@ PYTHONPLUS_THEME_COLORS = {
     "RANGE_SEL_COLOR": "#5588ff"
 }
 
-# DarkAmber1 Theme Colors (New)
 DARKAMBER1_THEME_COLORS = {
-    "BG": "#2b2b2b",  # Dark grey background
-    "FG": "#f0f0f0",  # Light text
-    "PANEL_BG": "#3c3c3c",  # Slightly lighter panel
+    "BG": "#2b2b2b",
+    "FG": "#f0f0f0",
+    "PANEL_BG": "#3c3c3c",
     "PANEL_FG": "#f0f0f0",
     "STATUS_BG": "#2b2b2b",
     "STATUS_FG": "#f0f0f0",
-    "OFFSET_BG": "#4a4a4a",  # Offset column
-    "OFFSET_COLOR": "#ffcc00",  # Amber/gold offset
-    "HEX_CELL_EVEN_BG": "#333333",  # Darker hex cells
-    "HEX_CELL_ODD_BG": "#3a3a3a",  # Lighter hex cells
-    "HEX_CELL_OUTLINE": "#555555",  # Grey outline
-    "HEX_VALUE_COLOR": "#e0e0e0",  # White hex values
+    "OFFSET_BG": "#4a4a4a",
+    "OFFSET_COLOR": "#ffcc00",
+    "HEX_CELL_EVEN_BG": "#333333",
+    "HEX_CELL_ODD_BG": "#3a3a3a",
+    "HEX_CELL_OUTLINE": "#555555",
+    "HEX_VALUE_COLOR": "#e0e0e0",
     "ASCII_BG": "#2b2b2b",
-    "ACCENT": "#ffa500",  # Orange ASCII
-    "HEX_SEL_COLOR": "#888800",  # Darker yellow selection
-    "CURSOR_COLOR": "#ffff00",  # Bright yellow cursor
+    "ACCENT": "#ffa500",
+    "HEX_SEL_COLOR": "#888800",
+    "CURSOR_COLOR": "#ffff00",
     "EDIT_BG": "#4a4a4a",
     "EDIT_FG": "#f0f0f0",
     "EDIT_CURSOR": "#00ff00",
     "BUTTON_BG": "#4a4a4a",
     "BUTTON_FG": "#f0f0f0",
     "BUTTON_ACTIVE_BG": "#5c5c5c",
-    "RANGE_SEL_COLOR": "#ccaa00"  # Amber range highlight
+    "RANGE_SEL_COLOR": "#ccaa00"
 }
 
-# Colorful Theme (BrightColors - Similar to PySimpleGUI's theme ideas)
 COLORFUL_THEME_COLORS = {
-    "BG": "#1f2a36",  # Dark blue-grey for main canvas
-    "FG": "#e0e0e0",  # Light text
-    "PANEL_BG": "#2a394a",  # Slightly lighter panel
-    "PANEL_FG": "#ffffff",  # Bright white
+    "BG": "#1f2a36",
+    "FG": "#e0e0e0",
+    "PANEL_BG": "#2a394a",
+    "PANEL_FG": "#ffffff",
     "STATUS_BG": "#1f2a36",
     "STATUS_FG": "#ffffff",
-    "OFFSET_BG": "#3c506e",  # Medium blue
-    "OFFSET_COLOR": "#ff5733",  # Bright red-orange offset
-    "HEX_CELL_EVEN_BG": "#314258",  # Darker hex cells
-    "HEX_CELL_ODD_BG": "#3a4c62",  # Lighter hex cells
-    "HEX_CELL_OUTLINE": "#556f8f",  # Blue outline
+    "OFFSET_BG": "#3c506e",
+    "OFFSET_COLOR": "#ff5733",
+    "HEX_CELL_EVEN_BG": "#314258",
+    "HEX_CELL_ODD_BG": "#3a4c62",
+    "HEX_CELL_OUTLINE": "#556f8f",
     "HEX_VALUE_COLOR": "#e0e0e0",
     "ASCII_BG": "#1f2a36",
-    "ACCENT": "#33ff57",  # Neon green ASCII
-    "HEX_SEL_COLOR": "#66b3ff",  # Sky blue selection
-    "CURSOR_COLOR": "#00ffff",  # Cyan cursor
+    "ACCENT": "#33ff57",
+    "HEX_SEL_COLOR": "#66b3ff",
+    "CURSOR_COLOR": "#00ffff",
     "EDIT_BG": "#4a6385",
     "EDIT_FG": "#ffffff",
-    "EDIT_CURSOR": "#ff00ff",  # Magenta cursor
+    "EDIT_CURSOR": "#ff00ff",
     "BUTTON_BG": "#3c506e",
     "BUTTON_FG": "#e0e0e0",
     "BUTTON_ACTIVE_BG": "#4a6385",
-    "RANGE_SEL_COLOR": "#a279f5"  # Purple range highlight
+    "RANGE_SEL_COLOR": "#a279f5"
 }
-
-# --- GLOBAL CONSTANTS (Independent of Theme) ---
-BYTES_PER_ROW = 16
-ASCII_FONT = ("Segoe UI", 11)
-HEX_FONT = ("Terminal", 11)
-ROW_H = 22
-CELL_W = 34
-ASCII_W = 15
-LINE_NUM_COL_W = 90 # New: Width for the line number column. Enough for 9 digits.
 
 class ToolTip:
     def __init__(self, widget, text):
@@ -173,12 +167,14 @@ class HexTable(tk.Canvas):
         self.editing = False
         self.blink_on = True
         self.match_length = 1
+        self.last_modified_range = None
+        self.highlight_timer_id = None
 
         self.header_height = ROW_H
         self.visible_data_rows = 0
         self.current_display_offset = 0
 
-        self.colors = LIGHT_THEME_COLORS  # Will be updated by app_instance.apply_theme
+        self.colors = LIGHT_THEME_COLORS
 
         self.bind("<Button-1>", self._on_mouse_down)
         self.bind("<B1-Motion>", self._on_mouse_drag)
@@ -193,228 +189,146 @@ class HexTable(tk.Canvas):
 
         self._redraw()
 
-    def _on_canvas_configure(self):
-        """Handle canvas resize event to update visible rows."""
-        new_height = self.winfo_height()
-        if new_height > self.header_height:
-            new_visible_rows = (new_height - self.header_height) // ROW_H
-            if new_visible_rows != self.visible_data_rows:
-                self.visible_data_rows = new_visible_rows
-                self._redraw()
-                self.app_instance.root.event_generate("<<HexScroll>>")
-
-    def apply_theme(self, colors):
-        self.colors = colors
-        self.config(bg=self.colors["BG"])
+    def _highlight_changed_bytes(self, start_offset, end_offset):
+        if self.last_modified_range:
+            self.delete("highlight")
+        self.last_modified_range = (start_offset, end_offset)
         self._redraw()
+        self.highlight_timer_id = self.after(5000, self._remove_highlight)
 
-    def load_file(self, data):
-        self.file_data = bytearray(data)
-        self.total_rows = (len(data) + BYTES_PER_ROW - 1) // BYTES_PER_ROW
-        if len(data) == 0:
-            self.total_rows = 0
-        self.selected = None
-        self.selection_start_offset = None
-        self.selection_end_offset = None
-        self.editing = False
-        self.current_display_offset = 0
-
-        self.after_idle(self._on_canvas_configure)
-
-    def goto_offset_and_display(self, target_offset):
-        if not self.file_data:
-            self.app_instance.current_offset_display_label.config(text="Offset: N/A")
-            self.app_instance.status_bar.config(text="No file loaded.")
-            return
-
-        target_offset = max(0, min(len(self.file_data) - 1, target_offset))
-        target_row_logical = target_offset // BYTES_PER_ROW
-
-        if self.total_rows <= self.visible_data_rows:
-            self.current_display_offset = 0
-        else:
-            top_row_for_centering = max(0, target_row_logical - (self.visible_data_rows // 2))
-            max_top_row = max(0, self.total_rows - self.visible_data_rows)
-            final_top_row_to_display = min(max_top_row, top_row_for_centering)
-            self.current_display_offset = final_top_row_to_display * BYTES_PER_ROW
-
-        self.selected = (target_row_logical, target_offset % BYTES_PER_ROW, "hex")
-        self.selection_start_offset = None
-        self.selection_end_offset = None
-        self._redraw()
-        self.app_instance.root.event_generate("<<HexSelection>>")
-
-    def scroll_pages(self, direction):
-        if not self.file_data:
-            self.app_instance.status_bar.config(text="No file loaded for scrolling.")
-            return
-
-        page_size_bytes = self.visible_data_rows * BYTES_PER_ROW
-        new_offset = self.current_display_offset + (direction * page_size_bytes)
-        last_possible_page_start_offset = max(0, (self.total_rows - self.visible_data_rows) * BYTES_PER_ROW)
-        self.current_display_offset = max(0, min(new_offset, last_possible_page_start_offset))
-        self._redraw()
-        self.app_instance.root.event_generate("<<HexScroll>>")
-
-    def _on_mousewheel(self, event):
-        if not self.file_data:
-            self.app_instance.status_bar.config(text="No file loaded for scrolling.")
-            return
-
-        lines_to_scroll = 3
-        if event.delta:  # Windows/X11
-            delta_lines = -int(event.delta / 120) * lines_to_scroll
-        else:  # macOS
-            delta_lines = -lines_to_scroll if event.num == 4 else lines_to_scroll
-
-        delta_bytes = delta_lines * BYTES_PER_ROW
-        new_offset = self.current_display_offset + delta_bytes
-        last_possible_start_offset = max(0, (self.total_rows - self.visible_data_rows) * BYTES_PER_ROW)
-        self.current_display_offset = max(0, min(new_offset, last_possible_start_offset))
-        self._redraw()
-        self.app_instance.root.event_generate("<<HexScroll>>")
-
-    def _on_key_press(self, event):
-        if self.editing:
-            return
-
-        handled = False
-        if event.keysym == "PageUp":
-            self.scroll_pages(-1)
-            handled = True
-        elif event.keysym == "PageDown":
-            self.scroll_pages(1)
-            handled = True
-        elif event.keysym == "Up":
-            if not self.file_data: return
-            new_offset_row = self.current_display_offset // BYTES_PER_ROW - 1
-            self.current_display_offset = max(0, new_offset_row * BYTES_PER_ROW)
+    def _remove_highlight(self):
+        if self.last_modified_range:
+            self.last_modified_range = None
             self._redraw()
-            self.app_instance.root.event_generate("<<HexScroll>>")
-            handled = True
-        elif event.keysym == "Down":
-            if not self.file_data: return
-            new_offset_row = self.current_display_offset // BYTES_PER_ROW + 1
-            max_offset_to_display = max(0, (self.total_rows - self.visible_data_rows) * BYTES_PER_ROW)
-            self.current_display_offset = min(max_offset_to_display, new_offset_row * BYTES_PER_ROW)
-            self._redraw()
-            self.app_instance.root.event_generate("<<HexScroll>>")
-            handled = True
-        elif event.keysym == "Left":
-            if self.selected:
-                row, col, kind = self.selected
-                new_col = col - 1
-                new_row = row
-                if new_col < 0:
-                    new_row -= 1
-                    new_col = BYTES_PER_ROW - 1
-                if new_row >= 0:
-                    self.selected = (new_row, new_col, kind)
-                    self._ensure_selection_visible()
-                else:
-                    if self.file_data: self.selected = (0, 0, kind)
-            elif self.file_data:
-                self.selected = (0, 0, "hex")
-            handled = True
-        elif event.keysym == "Right":
-            if self.selected:
-                row, col, kind = self.selected
-                new_col = col + 1
-                new_row = row
-                if new_col >= BYTES_PER_ROW:
-                    new_row += 1
-                    new_col = 0
-                if new_row < self.total_rows:
-                    self.selected = (new_row, new_col, kind)
-                    self._ensure_selection_visible()
-                else:
-                    if self.file_data: self.selected = (
-                        self.total_rows - 1, (len(self.file_data) - 1) % BYTES_PER_ROW, kind)
-            elif self.file_data:
-                self.selected = (0, 0, "hex")
-            handled = True
-        elif event.keysym == "Home":
-            if self.selected:
-                self.selected = (self.selected[0], 0, self.selected[2])
-                self._ensure_selection_visible()
-            elif self.file_data:
-                self.selected = (0, 0, "hex")
-            handled = True
-        elif event.keysym == "End":
-            if self.selected:
-                target_col = BYTES_PER_ROW - 1
-                if (self.selected[0] * BYTES_PER_ROW + target_col) >= len(self.file_data) and len(self.file_data) > 0:
-                    target_col = (len(self.file_data) - 1) % BYTES_PER_ROW
-                self.selected = (self.selected[0], target_col, self.selected[2])
-                self._ensure_selection_visible()
-            elif self.file_data:
-                self.selected = (self.total_rows - 1, (len(self.file_data) - 1) % BYTES_PER_ROW, "hex")
-            handled = True
 
-        if handled:
-            self._redraw()
-            self.app_instance.root.event_generate("<<HexSelection>>")
-            return "break"
+    def _redraw(self):
+        self.delete("all")
+        w = self.winfo_width()
+        h = self.winfo_height()
 
-    def _ensure_selection_visible(self):
-        if not self.selected or not self.file_data: return
-
-        selected_logical_row = self.selected[0]
-        current_top_display_row_logical = self.current_display_offset // BYTES_PER_ROW
-        current_bottom_display_row_logical = current_top_display_row_logical + self.visible_data_rows - 1
-
-        if selected_logical_row < current_top_display_row_logical:
-            self.current_display_offset = selected_logical_row * BYTES_PER_ROW
-            self._redraw()
-            self.app_instance.root.event_generate("<<HexScroll>>")
-        elif selected_logical_row > current_bottom_display_row_logical:
-            self.current_display_offset = max(0, (selected_logical_row - self.visible_data_rows + 1)) * BYTES_PER_ROW
-            self._redraw()
-            self.app_instance.root.event_generate("<<HexScroll>>")
-
-
-    def _get_offset_from_event(self, event):
-        x, y = event.x, event.y
-        y_relative_to_data_start_on_canvas = y - self.header_height
-
-        if y_relative_to_data_start_on_canvas < 0: return None, None
-
-        logical_row_on_page = int(y_relative_to_data_start_on_canvas // ROW_H)
-        global_logical_row = (self.current_display_offset // BYTES_PER_ROW) + logical_row_on_page
-
-        if not (0 <= global_logical_row < self.total_rows): return None, None
-
-        # Define column starting X coordinates (MUST match _redraw and _calculate_drawn_cell_bbox)
+        line_col_x0 = 0
         offset_col_x0 = LINE_NUM_COL_W
         hex_col_x0 = offset_col_x0 + 90
         ascii_col_x0 = hex_col_x0 + BYTES_PER_ROW * CELL_W + 16
 
-        clicked_kind = None
-        target_col = -1
+        self.create_rectangle(line_col_x0, 0, offset_col_x0, self.header_height, fill=self.colors["OFFSET_BG"],
+                              outline=self.colors["HEX_CELL_OUTLINE"], width=1)
+        self.create_text(line_col_x0 + 8, self.header_height // 2, text="Line", anchor="w", fill=self.colors["OFFSET_COLOR"],
+                         font=("Consolas", 10, "bold"))
 
-        # Check for click in Hex area
+        self.create_rectangle(offset_col_x0, 0, hex_col_x0, self.header_height, fill=self.colors["OFFSET_BG"],
+                              outline=self.colors["HEX_CELL_OUTLINE"], width=1)
+        self.create_text(offset_col_x0 + 8, self.header_height // 2, text="Offset", anchor="w", fill=self.colors["OFFSET_COLOR"],
+                         font=("Consolas", 10, "bold"))
+
         for col in range(BYTES_PER_ROW):
-            # Check if x is within the bounds of any hex cell
-            if hex_col_x0 + col * CELL_W <= x < hex_col_x0 + (col + 1) * CELL_W:
-                clicked_kind = "hex"
-                target_col = col
+            cell_x = hex_col_x0 + col * CELL_W
+            self.create_text(cell_x + CELL_W // 2, self.header_height // 2, text=f"{col:X}",
+                             font=("Consolas", 10, "bold"), fill=self.colors["HEX_VALUE_COLOR"])
+
+        self.create_text(ascii_col_x0 + BYTES_PER_ROW * ASCII_W // 2, self.header_height // 2, text="ASCII",
+                         font=("Consolas", 10, "bold"), fill=self.colors["ACCENT"])
+
+        self.create_line(0, self.header_height - 1, w, self.header_height - 1, fill=self.colors["HEX_CELL_OUTLINE"],
+                         width=1)
+
+        start_logical_row_to_display = self.current_display_offset // BYTES_PER_ROW
+
+        for row_on_page_idx in range(self.visible_data_rows):
+            global_logical_row = start_logical_row_to_display + row_on_page_idx
+
+            if global_logical_row >= self.total_rows:
                 break
 
-        # If not in Hex area, check for click in ASCII area
-        if clicked_kind is None:
-            for col in range(BYTES_PER_ROW):
-                # Check if x is within the bounds of any ascii cell
-                if ascii_col_x0 + col * ASCII_W <= x < ascii_col_x0 + (col + 1) * ASCII_W:
-                    clicked_kind = "ascii"
-                    target_col = col
-                    break
+            y_on_canvas = (row_on_page_idx * ROW_H) + self.header_height
+            data_byte_offset = global_logical_row * BYTES_PER_ROW
 
-        if clicked_kind and target_col != -1:
-            clicked_byte_offset = (global_logical_row * BYTES_PER_ROW + target_col)
-            if clicked_byte_offset < len(self.file_data):
-                return clicked_byte_offset, clicked_kind
+            self.create_rectangle(line_col_x0, y_on_canvas, offset_col_x0, y_on_canvas + ROW_H, fill=self.colors["OFFSET_BG"],
+                                  outline=self.colors["HEX_CELL_OUTLINE"], width=1)
+            self.create_text(offset_col_x0 - 8, y_on_canvas + ROW_H // 2, text=f"{global_logical_row}", anchor="e",
+                             fill=self.colors["OFFSET_COLOR"], font=HEX_FONT)
 
-        return None, None
+            self.create_rectangle(offset_col_x0, y_on_canvas, hex_col_x0, y_on_canvas + ROW_H, fill=self.colors["OFFSET_BG"],
+                                  outline=self.colors["HEX_CELL_OUTLINE"], width=1)
+            self.create_text(hex_col_x0 - 8, y_on_canvas + ROW_H // 2, text=f"{data_byte_offset:08X}", anchor="e",
+                             fill=self.colors["OFFSET_COLOR"], font=HEX_FONT)
+
+            for col_idx in range(BYTES_PER_ROW):
+                cell_x = hex_col_x0 + col_idx * CELL_W
+                current_byte_global_idx = data_byte_offset + col_idx
+                val = self.file_data[current_byte_global_idx] if current_byte_global_idx < len(self.file_data) else None
+                txt = f"{val:02X}" if val is not None else ""
+
+                bg_color_hex = self.colors["HEX_CELL_EVEN_BG"] if (global_logical_row + col_idx) % 2 == 0 else \
+                    self.colors["HEX_CELL_ODD_BG"]
+
+                is_in_range = False
+                if self.selection_start_offset is not None and self.selection_end_offset is not None:
+                    if self.selection_start_offset <= current_byte_global_idx <= self.selection_end_offset:
+                        is_in_range = True
+
+                is_selected_hex_single = (self.selected == (global_logical_row, col_idx, "hex"))
+
+                if is_in_range:
+                    current_bg_color = self.colors["RANGE_SEL_COLOR"]
+                elif is_selected_hex_single and not self.editing:
+                    current_bg_color = self.colors["HEX_SEL_COLOR"]
+                else:
+                    current_bg_color = bg_color_hex
+
+                self.create_rectangle(cell_x, y_on_canvas, cell_x + CELL_W, y_on_canvas + ROW_H, fill=current_bg_color,
+                                      outline=self.colors["HEX_CELL_OUTLINE"], width=1)
+                self.create_text(cell_x + CELL_W // 2, y_on_canvas + ROW_H // 2, text=txt, font=HEX_FONT,
+                                 fill=self.colors["HEX_VALUE_COLOR"])
+
+            for col_idx in range(BYTES_PER_ROW):
+                current_byte_global_idx = data_byte_offset + col_idx
+                val = self.file_data[current_byte_global_idx] if current_byte_global_idx < len(self.file_data) else None
+                ch = chr(val) if val is not None and 32 <= val < 127 else "."
+
+                bg_color_ascii = self.colors["ASCII_BG"]
+                is_in_range = False
+                if self.selection_start_offset is not None and self.selection_end_offset is not None:
+                    if self.selection_start_offset <= current_byte_global_idx <= self.selection_end_offset:
+                        is_in_range = True
+
+                is_selected_ascii_single = (self.selected == (global_logical_row, col_idx, "ascii"))
+                is_corresponding_hex_selected_single = (self.selected == (global_logical_row, col_idx, "hex"))
+
+                if is_in_range:
+                    current_bg_color = self.colors["RANGE_SEL_COLOR"]
+                elif (is_selected_ascii_single or is_corresponding_hex_selected_single) and not self.editing:
+                    current_bg_color = self.colors["HEX_SEL_COLOR"]
+                else:
+                    current_bg_color = bg_color_ascii
+
+                self.create_rectangle(ascii_col_x0 + col_idx * ASCII_W, y_on_canvas, ascii_col_x0 + (col_idx + 1) * ASCII_W,
+                                      y_on_canvas + ROW_H, fill=current_bg_color,
+                                      outline=self.colors["HEX_CELL_OUTLINE"], width=1)
+                self.create_text(ascii_col_x0 + col_idx * ASCII_W + ASCII_W // 2, y_on_canvas + ROW_H // 2, text=ch,
+                                 font=ASCII_FONT, fill=self.colors["ACCENT"])
+
+        if self.editing and self.selected and self.blink_on:
+            row, col, kind = self.selected
+            bbox = self._calculate_drawn_cell_bbox(row, col, kind)
+            if bbox:
+                self.create_rectangle(bbox[0], bbox[1], bbox[0] + bbox[2], bbox[1] + bbox[3],
+                                      outline=self.colors["CURSOR_COLOR"], width=2)
+
+        self.create_line(ascii_col_x0 - 8, self.header_height, ascii_col_x0 - 8, h, fill=self.colors["HEX_CELL_OUTLINE"],
+                         width=2)
+
+        if self.last_modified_range:
+            start_offset, end_offset = self.last_modified_range
+            for row_on_page_idx in range(self.visible_data_rows):
+                global_logical_row = start_logical_row_to_display + row_on_page_idx
+                data_byte_offset = global_logical_row * BYTES_PER_ROW
+                for col_idx in range(BYTES_PER_ROW):
+                    current_byte_global_idx = data_byte_offset + col_idx
+                    if start_offset <= current_byte_global_idx <= end_offset:
+                        cell_x = hex_col_x0 + col_idx * CELL_W
+                        self.create_rectangle(cell_x, y_on_canvas, cell_x + CELL_W, y_on_canvas + ROW_H,
+                                              fill="yellow", outline=self.colors["HEX_CELL_OUTLINE"], width=1, tags="highlight")
 
     def _on_mouse_down(self, event):
         if self.editing:
@@ -447,7 +361,6 @@ class HexTable(tk.Canvas):
                 current_offset_under_mouse // BYTES_PER_ROW, current_offset_under_mouse % BYTES_PER_ROW, 'hex')
             self._redraw()
             self.app_instance.root.event_generate("<<HexSelection>>")
-        # else: no status bar update here, as drag might go out of bounds temporarily
 
     def _on_mouse_up(self, event):
         self._drag_start_offset = None
@@ -490,7 +403,7 @@ class HexTable(tk.Canvas):
 
         is_data_loaded = bool(self.file_data)
         is_selected_range = (self.selection_start_offset is not None and self.selection_end_offset is not None)
-        is_clipboard_available = True  # Tkinter clipboard is usually always available, content might vary
+        is_clipboard_available = True
 
         context_menu.add_command(label="Select All", command=self._select_all,
                                  state=tk.NORMAL if is_data_loaded else tk.DISABLED)
@@ -498,7 +411,6 @@ class HexTable(tk.Canvas):
                                  state=tk.NORMAL if is_selected_range else tk.DISABLED)
         context_menu.add_separator()
 
-        # Add Copy/Cut/Paste options
         context_menu.add_command(label="Copy", command=self.app_instance.copy_selection,
                                  state=tk.NORMAL if is_selected_range else tk.DISABLED)
         context_menu.add_command(label="Cut", command=self.app_instance.cut_selection,
@@ -507,7 +419,6 @@ class HexTable(tk.Canvas):
                                  state=tk.NORMAL if is_data_loaded and is_clipboard_available else tk.DISABLED)
         context_menu.add_separator()
 
-        # Add Fill Selection option
         context_menu.add_command(label="Fill selected bytes...", command=self.app_instance.fill_selection,
                                  state=tk.NORMAL if is_selected_range else tk.DISABLED)
         context_menu.add_separator()
@@ -603,15 +514,15 @@ class HexTable(tk.Canvas):
                 return
             fill_byte = int(value_str, 16)
 
-            self.app_instance._save_undo_state()  # Save state BEFORE modification
+            self.app_instance._save_undo_state()
             new_file_data = bytearray()
             new_file_data.extend(self.file_data[:insert_offset])
             new_file_data.extend(bytearray([fill_byte] * num_bytes))
             new_file_data.extend(self.file_data[insert_offset:])
 
             self.load_file(new_file_data)
-            self.app_instance.file_size = len(new_file_data)  # Update file size
-            self.app_instance._update_file_info()  # Update file info panel
+            self.app_instance.file_size = len(new_file_data)
+            self.app_instance._update_file_info()
             self.goto_offset_and_display(insert_offset)
             self.app_instance.status_bar.config(
                 text=f"Inserted {num_bytes} bytes at 0x{insert_offset:08X}.")
@@ -638,14 +549,14 @@ class HexTable(tk.Canvas):
             return
 
         try:
-            self.app_instance._save_undo_state()  # Save state BEFORE modification
+            self.app_instance._save_undo_state()
             new_file_data = bytearray()
             new_file_data.extend(self.file_data[:start])
             new_file_data.extend(self.file_data[end:])
 
             self.load_file(new_file_data)
-            self.app_instance.file_size = len(new_file_data)  # Update file size
-            self.app_instance._update_file_info()  # Update file info panel
+            self.app_instance.file_size = len(new_file_data)
+            self.app_instance._update_file_info()
             new_offset = min(start, len(new_file_data) - 1 if new_file_data else 0)
             self.goto_offset_and_display(new_offset)
             self.app_instance.status_bar.config(
@@ -670,11 +581,11 @@ class HexTable(tk.Canvas):
             return
 
         try:
-            self.app_instance._save_undo_state()  # Save state BEFORE modification
+            self.app_instance._save_undo_state()
             self.file_data = self.file_data[start:end]
             self.load_file(self.file_data)
-            self.app_instance.file_size = len(self.file_data)  # Update file size
-            self.app_instance._update_file_info()  # Update file info panel
+            self.app_instance.file_size = len(self.file_data)
+            self.app_instance._update_file_info()
             self.goto_offset_and_display(0)
             self.app_instance.status_bar.config(
                 text=f"File cropped to {num_cropped} bytes.")
@@ -799,23 +710,22 @@ class HexTable(tk.Canvas):
         if save:
             try:
                 val = self.edit_entry.get()
-                if idx < len(self.file_data):  # Ensure index is valid after potential modifications
+                if idx < len(self.file_data):
                     if kind == "hex":
                         if not (len(val) == 2 and all(c in "0123456789abcdefABCDEF" for c in val.lower())):
                             raise ValueError("Invalid hex format (must be 2 hex digits)")
                         b = int(val, 16)
-                    else:  # ASCII
+                    else:
                         if not val:
                             b = ord('.')
                         elif len(val) > 1:
                             b = ord(val[0])
                         else:
                             b = ord(val)
-                        if not (32 <= b < 127):  # Ensure printable ASCII
+                        if not (32 <= b < 127):
                             b = ord(".")
-                    # Only save undo state if there's an actual change
                     if old_value is not None and old_value != b:
-                        self.app_instance._save_undo_state()  # Save state BEFORE modification
+                        self.app_instance._save_undo_state()
                     self.file_data[idx] = b
 
                     if old_value is not None and old_value != b:
@@ -843,7 +753,6 @@ class HexTable(tk.Canvas):
         self._redraw()
         self.after(500, self._blink_cursor)
 
-
     def _calculate_drawn_cell_bbox(self, global_row, global_col, kind):
         display_start_row_logical = self.current_display_offset // BYTES_PER_ROW
         row_on_page = global_row - display_start_row_logical
@@ -853,190 +762,265 @@ class HexTable(tk.Canvas):
 
         y_on_canvas = (row_on_page * ROW_H) + self.header_height
 
-        # Define column starting X coordinates (MUST match _redraw)
-        offset_col_x0 = LINE_NUM_COL_W  # Shifted
-        hex_col_x0 = offset_col_x0 + 90  # Shifted (90 was the old offset col width)
-        ascii_col_x0 = hex_col_x0 + BYTES_PER_ROW * CELL_W + 16  # Shifted
+        offset_col_x0 = LINE_NUM_COL_W
+        hex_col_x0 = offset_col_x0 + 90
+        ascii_col_x0 = hex_col_x0 + BYTES_PER_ROW * CELL_W + 16
 
         if kind == "hex":
-            x = hex_col_x0 + global_col * CELL_W  # Use the new hex_col_x0
+            x = hex_col_x0 + global_col * CELL_W
             return (x, y_on_canvas, CELL_W - 2, ROW_H - 4)
         else:
-            x = ascii_col_x0 + global_col * ASCII_W  # Use the new ascii_col_x0
+            x = ascii_col_x0 + global_col * ASCII_W
             return (x, y_on_canvas, ASCII_W, ROW_H - 4)
 
-    def _redraw(self):
-        self.delete("all")
-        w = self.winfo_width()
-        h = self.winfo_height()
+    def _on_canvas_configure(self):
+        new_height = self.winfo_height()
+        if new_height > self.header_height:
+            new_visible_rows = (new_height - self.header_height) // ROW_H
+            if new_visible_rows != self.visible_data_rows:
+                self.visible_data_rows = new_visible_rows
+                self._redraw()
+                self.app_instance.root.event_generate("<<HexScroll>>")
 
-        # Define column starting X coordinates
-        line_col_x0 = 0
-        offset_col_x0 = LINE_NUM_COL_W # Shifted
-        hex_col_x0 = offset_col_x0 + 90 # Shifted (90 was the old offset col width)
-        ascii_col_x0 = hex_col_x0 + BYTES_PER_ROW * CELL_W + 16 # Shifted
+    def apply_theme(self, colors):
+        self.colors = colors
+        self.config(bg=self.colors["BG"])
+        self._redraw()
 
-        # Header Row
-        # Line Number Header
-        self.create_rectangle(line_col_x0, 0, offset_col_x0, self.header_height, fill=self.colors["OFFSET_BG"],
-                              outline=self.colors["HEX_CELL_OUTLINE"], width=1)
-        self.create_text(line_col_x0 + 8, self.header_height // 2, text="Line", anchor="w", fill=self.colors["OFFSET_COLOR"],
-                         font=("Consolas", 10, "bold"))
+    def load_file(self, data):
+        self.file_data = bytearray(data)
+        self.total_rows = (len(data) + BYTES_PER_ROW - 1) // BYTES_PER_ROW
+        if len(data) == 0:
+            self.total_rows = 0
+        self.selected = None
+        self.selection_start_offset = None
+        self.selection_end_offset = None
+        self.editing = False
+        self.current_display_offset = 0
 
-        # Offset Header (shifted)
-        self.create_rectangle(offset_col_x0, 0, hex_col_x0, self.header_height, fill=self.colors["OFFSET_BG"],
-                              outline=self.colors["HEX_CELL_OUTLINE"], width=1)
-        self.create_text(offset_col_x0 + 8, self.header_height // 2, text="Offset", anchor="w", fill=self.colors["OFFSET_COLOR"],
-                         font=("Consolas", 10, "bold"))
+        self.after_idle(self._on_canvas_configure)
 
-        # Hex Header (shifted)
+    def goto_offset_and_display(self, target_offset):
+        if not self.file_data:
+            self.app_instance.current_offset_display_label.config(text="Offset: N/A")
+            self.app_instance.status_bar.config(text="No file loaded.")
+            return
+
+        target_offset = max(0, min(len(self.file_data) - 1, target_offset))
+        target_row_logical = target_offset // BYTES_PER_ROW
+
+        if self.total_rows <= self.visible_data_rows:
+            self.current_display_offset = 0
+        else:
+            top_row_for_centering = max(0, target_row_logical - (self.visible_data_rows // 2))
+            max_top_row = max(0, self.total_rows - self.visible_data_rows)
+            final_top_row_to_display = min(max_top_row, top_row_for_centering)
+            self.current_display_offset = final_top_row_to_display * BYTES_PER_ROW
+
+        self.selected = (target_row_logical, target_offset % BYTES_PER_ROW, "hex")
+        self.selection_start_offset = None
+        self.selection_end_offset = None
+        self._redraw()
+        self.app_instance.root.event_generate("<<HexSelection>>")
+
+    def scroll_pages(self, direction):
+        if not self.file_data:
+            self.app_instance.status_bar.config(text="No file loaded for scrolling.")
+            return
+
+        page_size_bytes = self.visible_data_rows * BYTES_PER_ROW
+        new_offset = self.current_display_offset + (direction * page_size_bytes)
+        last_possible_page_start_offset = max(0, (self.total_rows - self.visible_data_rows) * BYTES_PER_ROW)
+        self.current_display_offset = max(0, min(new_offset, last_possible_page_start_offset))
+        self._redraw()
+        self.app_instance.root.event_generate("<<HexScroll>>")
+
+    def _on_mousewheel(self, event):
+        if not self.file_data:
+            self.app_instance.status_bar.config(text="No file loaded for scrolling.")
+            return
+
+        lines_to_scroll = 3
+        if event.delta:
+            delta_lines = -int(event.delta / 120) * lines_to_scroll
+        else:
+            delta_lines = -lines_to_scroll if event.num == 4 else lines_to_scroll
+
+        delta_bytes = delta_lines * BYTES_PER_ROW
+        new_offset = self.current_display_offset + delta_bytes
+        last_possible_start_offset = max(0, (self.total_rows - self.visible_data_rows) * BYTES_PER_ROW)
+        self.current_display_offset = max(0, min(new_offset, last_possible_start_offset))
+        self._redraw()
+        self.app_instance.root.event_generate("<<HexScroll>>")
+
+    def _on_key_press(self, event):
+        if self.editing:
+            return
+
+        handled = False
+        if event.keysym == "PageUp":
+            self.scroll_pages(-1)
+            handled = True
+        elif event.keysym == "PageDown":
+            self.scroll_pages(1)
+            handled = True
+        elif event.keysym == "Up":
+            if not self.file_data: return
+            new_offset_row = self.current_display_offset // BYTES_PER_ROW - 1
+            self.current_display_offset = max(0, new_offset_row * BYTES_PER_ROW)
+            self._redraw()
+            self.app_instance.root.event_generate("<<HexScroll>>")
+            handled = True
+        elif event.keysym == "Down":
+            if not self.file_data: return
+            new_offset_row = self.current_display_offset // BYTES_PER_ROW + 1
+            max_offset_to_display = max(0, (self.total_rows - self.visible_data_rows) * BYTES_PER_ROW)
+            self.current_display_offset = min(max_offset_to_display, new_offset_row * BYTES_PER_ROW)
+            self._redraw()
+            self.app_instance.root.event_generate("<<HexScroll>>")
+            handled = True
+        elif event.keysym == "Left":
+            if self.selected:
+                row, col, kind = self.selected
+                new_col = col - 1
+                new_row = row
+                if new_col < 0:
+                    new_row -= 1
+                    new_col = BYTES_PER_ROW - 1
+                if new_row >= 0:
+                    self.selected = (new_row, new_col, kind)
+                    self._ensure_selection_visible()
+                else:
+                    if self.file_data: self.selected = (0, 0, kind)
+            elif self.file_data:
+                self.selected = (0, 0, "hex")
+            handled = True
+        elif event.keysym == "Right":
+            if self.selected:
+                row, col, kind = self.selected
+                new_col = col + 1
+                new_row = row
+                if new_col >= BYTES_PER_ROW:
+                    new_row += 1
+                    new_col = 0
+                if new_row < self.total_rows:
+                    self.selected = (new_row, new_col, kind)
+                    self._ensure_selection_visible()
+                else:
+                    if self.file_data: self.selected = (
+                        self.total_rows - 1, (len(self.file_data) - 1) % BYTES_PER_ROW, kind)
+            elif self.file_data:
+                self.selected = (0, 0, "hex")
+            handled = True
+        elif event.keysym == "Home":
+            if self.selected:
+                self.selected = (self.selected[0], 0, self.selected[2])
+                self._ensure_selection_visible()
+            elif self.file_data:
+                self.selected = (0, 0, "hex")
+            handled = True
+        elif event.keysym == "End":
+            if self.selected:
+                target_col = BYTES_PER_ROW - 1
+                if (self.selected[0] * BYTES_PER_ROW + target_col) >= len(self.file_data) and len(self.file_data) > 0:
+                    target_col = (len(self.file_data) - 1) % BYTES_PER_ROW
+                self.selected = (self.selected[0], target_col, self.selected[2])
+                self._ensure_selection_visible()
+            elif self.file_data:
+                self.selected = (self.total_rows - 1, (len(self.file_data) - 1) % BYTES_PER_ROW, "hex")
+            handled = True
+
+        if handled:
+            self._redraw()
+            self.app_instance.root.event_generate("<<HexSelection>>")
+            return "break"
+
+    def _ensure_selection_visible(self):
+        if not self.selected or not self.file_data: return
+
+        selected_logical_row = self.selected[0]
+        current_top_display_row_logical = self.current_display_offset // BYTES_PER_ROW
+        current_bottom_display_row_logical = current_top_display_row_logical + self.visible_data_rows - 1
+
+        if selected_logical_row < current_top_display_row_logical:
+            self.current_display_offset = selected_logical_row * BYTES_PER_ROW
+            self._redraw()
+            self.app_instance.root.event_generate("<<HexScroll>>")
+        elif selected_logical_row > current_bottom_display_row_logical:
+            self.current_display_offset = max(0, (selected_logical_row - self.visible_data_rows + 1)) * BYTES_PER_ROW
+            self._redraw()
+            self.app_instance.root.event_generate("<<HexScroll>>")
+
+    def _get_offset_from_event(self, event):
+        x, y = event.x, event.y
+        y_relative_to_data_start_on_canvas = y - self.header_height
+
+        if y_relative_to_data_start_on_canvas < 0: return None, None
+
+        logical_row_on_page = int(y_relative_to_data_start_on_canvas // ROW_H)
+        global_logical_row = (self.current_display_offset // BYTES_PER_ROW) + logical_row_on_page
+
+        if not (0 <= global_logical_row < self.total_rows): return None, None
+
+        offset_col_x0 = LINE_NUM_COL_W
+        hex_col_x0 = offset_col_x0 + 90
+        ascii_col_x0 = hex_col_x0 + BYTES_PER_ROW * CELL_W + 16
+
+        clicked_kind = None
+        target_col = -1
+
         for col in range(BYTES_PER_ROW):
-            cell_x = hex_col_x0 + col * CELL_W
-            self.create_text(cell_x + CELL_W // 2, self.header_height // 2, text=f"{col:X}",
-                             font=("Consolas", 10, "bold"), fill=self.colors["HEX_VALUE_COLOR"])
-
-        # ASCII Header (shifted)
-        self.create_text(ascii_col_x0 + BYTES_PER_ROW * ASCII_W // 2, self.header_height // 2, text="ASCII",
-                         font=("Consolas", 10, "bold"), fill=self.colors["ACCENT"])
-
-        # Horizontal line below header
-        self.create_line(0, self.header_height - 1, w, self.header_height - 1, fill=self.colors["HEX_CELL_OUTLINE"],
-                         width=1)
-
-        start_logical_row_to_display = self.current_display_offset // BYTES_PER_ROW
-
-        for row_on_page_idx in range(self.visible_data_rows):
-            global_logical_row = start_logical_row_to_display + row_on_page_idx
-
-            if global_logical_row >= self.total_rows:
+            if hex_col_x0 + col * CELL_W <= x < hex_col_x0 + (col + 1) * CELL_W:
+                clicked_kind = "hex"
+                target_col = col
                 break
 
-            y_on_canvas = (row_on_page_idx * ROW_H) + self.header_height
-            data_byte_offset = global_logical_row * BYTES_PER_ROW
+        if clicked_kind is None:
+            for col in range(BYTES_PER_ROW):
+                if ascii_col_x0 + col * ASCII_W <= x < ascii_col_x0 + (col + 1) * ASCII_W:
+                    clicked_kind = "ascii"
+                    target_col = col
+                    break
 
-            # Draw Line Number Column
-            self.create_rectangle(line_col_x0, y_on_canvas, offset_col_x0, y_on_canvas + ROW_H, fill=self.colors["OFFSET_BG"],
-                                  outline=self.colors["HEX_CELL_OUTLINE"], width=1)
-            self.create_text(offset_col_x0 - 8, y_on_canvas + ROW_H // 2, text=f"{global_logical_row}", anchor="e",
-                             fill=self.colors["OFFSET_COLOR"], font=HEX_FONT) # Display line number
+        if clicked_kind and target_col != -1:
+            clicked_byte_offset = (global_logical_row * BYTES_PER_ROW + target_col)
+            if clicked_byte_offset < len(self.file_data):
+                return clicked_byte_offset, clicked_kind
 
-            # Draw Offset Column (shifted)
-            self.create_rectangle(offset_col_x0, y_on_canvas, hex_col_x0, y_on_canvas + ROW_H, fill=self.colors["OFFSET_BG"],
-                                  outline=self.colors["HEX_CELL_OUTLINE"], width=1)
-            self.create_text(hex_col_x0 - 8, y_on_canvas + ROW_H // 2, text=f"{data_byte_offset:08X}", anchor="e",
-                             fill=self.colors["OFFSET_COLOR"], font=HEX_FONT)
+        return None, None
 
-            # Draw Hex Data Cells (shifted)
-            for col_idx in range(BYTES_PER_ROW):
-                cell_x = hex_col_x0 + col_idx * CELL_W
-                current_byte_global_idx = data_byte_offset + col_idx
-                val = self.file_data[current_byte_global_idx] if current_byte_global_idx < len(self.file_data) else None
-                txt = f"{val:02X}" if val is not None else ""
 
-                bg_color_hex = self.colors["HEX_CELL_EVEN_BG"] if (global_logical_row + col_idx) % 2 == 0 else \
-                    self.colors["HEX_CELL_ODD_BG"]
-
-                is_in_range = False
-                if self.selection_start_offset is not None and self.selection_end_offset is not None:
-                    if self.selection_start_offset <= current_byte_global_idx <= self.selection_end_offset:
-                        is_in_range = True
-
-                is_selected_hex_single = (self.selected == (global_logical_row, col_idx, "hex"))
-
-                if is_in_range:
-                    current_bg_color = self.colors["RANGE_SEL_COLOR"]
-                elif is_selected_hex_single and not self.editing:
-                    current_bg_color = self.colors["HEX_SEL_COLOR"]
-                else:
-                    current_bg_color = bg_color_hex
-
-                self.create_rectangle(cell_x, y_on_canvas, cell_x + CELL_W, y_on_canvas + ROW_H, fill=current_bg_color,
-                                      outline=self.colors["HEX_CELL_OUTLINE"], width=1)
-                self.create_text(cell_x + CELL_W // 2, y_on_canvas + ROW_H // 2, text=txt, font=HEX_FONT,
-                                 fill=self.colors["HEX_VALUE_COLOR"])
-
-            # Draw ASCII Data Cells (shifted)
-            for col_idx in range(BYTES_PER_ROW):
-                current_byte_global_idx = data_byte_offset + col_idx
-                val = self.file_data[current_byte_global_idx] if current_byte_global_idx < len(self.file_data) else None
-                ch = chr(val) if val is not None and 32 <= val < 127 else "."
-
-                bg_color_ascii = self.colors["ASCII_BG"]
-                is_in_range = False
-                if self.selection_start_offset is not None and self.selection_end_offset is not None:
-                    if self.selection_start_offset <= current_byte_global_idx <= self.selection_end_offset:
-                        is_in_range = True
-
-                is_selected_ascii_single = (self.selected == (global_logical_row, col_idx, "ascii"))
-                is_corresponding_hex_selected_single = (self.selected == (global_logical_row, col_idx, "hex"))
-
-                if is_in_range:
-                    current_bg_color = self.colors["RANGE_SEL_COLOR"]
-                elif (is_selected_ascii_single or is_corresponding_hex_selected_single) and not self.editing:
-                    current_bg_color = self.colors["HEX_SEL_COLOR"]
-                else:
-                    current_bg_color = bg_color_ascii
-
-                self.create_rectangle(ascii_col_x0 + col_idx * ASCII_W, y_on_canvas, ascii_col_x0 + (col_idx + 1) * ASCII_W,
-                                      y_on_canvas + ROW_H, fill=current_bg_color,
-                                      outline=self.colors["HEX_CELL_OUTLINE"], width=1)
-                self.create_text(ascii_col_x0 + col_idx * ASCII_W + ASCII_W // 2, y_on_canvas + ROW_H // 2, text=ch,
-                                 font=ASCII_FONT, fill=self.colors["ACCENT"])
-
-        if self.editing and self.selected and self.blink_on:
-            row, col, kind = self.selected
-            bbox = self._calculate_drawn_cell_bbox(row, col, kind)
-            if bbox:
-                self.create_rectangle(bbox[0], bbox[1], bbox[0] + bbox[2], bbox[1] + bbox[3],
-                                      outline=self.colors["CURSOR_COLOR"], width=2)
-
-        # Vertical line between hex and ascii (shifted)
-        self.create_line(ascii_col_x0 - 8, self.header_height, ascii_col_x0 - 8, h, fill=self.colors["HEX_CELL_OUTLINE"],
-                         width=2)
 
 class HexEditorApp:
     def __init__(self, root):
         self.root = root
         root.title("« Hex Editor »")
-        # Set to full screen
-        # For Windows/Linux:
         root.state('zoomed')
-        # For macOS:
-        # root.attributes('-fullscreen', True)
-        # Removed root.geometry("1400x800") as it conflicts with full screen
+        self.bookmarks = {}  # Dictionary to store bookmarks
 
-        self.colors = PYTHONPLUS_THEME_COLORS  # Default theme, will be overridden by config if present
+        self.colors = PYTHONPLUS_THEME_COLORS
         self._set_ttk_style()
         self.root.configure(bg=self.colors["PANEL_BG"])
 
         self.frame_main = tk.Frame(root, bg=self.colors["PANEL_BG"])
         self.frame_main.pack(fill="both", expand=1)
 
-        # --- Left Panel ---
         self.left_panel = tk.Frame(self.frame_main, width=270, bg=self.colors["PANEL_BG"])
         self.left_panel.pack(side="left", fill="y", padx=5, pady=5)
-        # _build_side_panel will now only build widgets for the left_panel
 
-        # --- Right Side Container (for Hex View and new Search Panel) ---
         self.right_side_container = tk.Frame(self.frame_main, bg=self.colors["PANEL_BG"])
-        # This frame takes the remaining horizontal space and expands
-        self.right_side_container.pack(side="left", fill="both", expand=1, padx=0,
-                                       pady=5)  # padx=0 between center and right panel
+        self.right_side_container.pack(side="left", fill="both", expand=1, padx=0, pady=5)
 
-        # --- Hex View Container (inside right_side_container) ---
         self.hex_view_container = tk.Frame(self.right_side_container, bg=self.colors["PANEL_BG"])
-        self.hex_view_container.pack(side="left", fill="both", expand=True, padx=(5, 0))  # padx on left for spacing
+        self.hex_view_container.pack(side="left", fill="both", expand=True, padx=(5, 0))
 
         self.hex_table = HexTable(self.hex_view_container, self)
-        self.hex_table.pack(side="top", fill="both", expand=1)  # HexTable remains packed top inside its container
-        self.hex_table.apply_theme(self.colors)  # Apply initial theme to hex_table
+        self.hex_table.pack(side="top", fill="both", expand=1)
+        self.hex_table.apply_theme(self.colors)
 
         self.page_nav_frame = ttk.Frame(self.hex_view_container, style="TFrame")
         self.page_nav_frame.pack(side="bottom", fill="x", pady=(2, 0))
 
-        # 1. Add underlines for bottom panel (T, P, N, E) for top of file, previous pg, next pg and end of file.
-        # Removed explicit underlining from button style due to ttk.Button limitations.
-        # Instead, adding shortcut info to tooltips.
         self.btn_top_file = ttk.Button(self.page_nav_frame, text="<< Top of File",
                                        command=lambda: self.hex_table.goto_offset_and_display(0))
         self.btn_top_file.pack(side="left", padx=2)
@@ -1061,11 +1045,9 @@ class HexEditorApp:
                                                       foreground=self.colors["FG"], font=("Arial", 9))
         self.current_offset_display_label.pack(side="left", padx=10)
 
-        # --- Search Panel (new) ---
         self.search_panel = tk.Frame(self.right_side_container, width=270, bg=self.colors["PANEL_BG"])
-        self.search_panel.pack(side="right", fill="y", padx=(5, 5), pady=0)  # padx on right for spacing
+        self.search_panel.pack(side="right", fill="y", padx=(5, 5), pady=0)
 
-        # Now build the side panels, passing the correct parent frame
         self._build_left_panel_widgets()
         self._build_search_panel_widgets()
 
@@ -1075,16 +1057,18 @@ class HexEditorApp:
 
         menubar = tk.Menu(root)
 
-        # File Menu
         fmenu = tk.Menu(menubar, tearoff=0)
         fmenu.add_command(label="Open...", command=self.load_file, accelerator="Ctrl+O")
         fmenu.add_separator()
         fmenu.add_command(label="Save As...", command=self.save_file_as, accelerator="Ctrl+S")
         fmenu.add_separator()
+
+        recent_files_menu = tk.Menu(fmenu, tearoff=0)
+        fmenu.add_cascade(label="Recent Files", menu=recent_files_menu)
+        fmenu.add_separator()
         fmenu.add_command(label="Exit", command=root.quit, accelerator="Ctrl+Q")
         menubar.add_cascade(label="File", menu=fmenu)
 
-        # Edit Menu (New)
         edit_menu = tk.Menu(menubar, tearoff=0)
         edit_menu.add_command(label="Undo", command=self.undo, accelerator="Ctrl+Z")
         edit_menu.add_command(label="Redo", command=self.redo, accelerator="Ctrl+Y")
@@ -1111,7 +1095,7 @@ class HexEditorApp:
         util_menu.add_command(label="Dec to Hex", command=self.dec_to_hex)
         util_menu.add_separator()
         util_menu.add_command(label="Save Config", command=self.save_config)
-        util_menu.add_command(label="Load Config", command=lambda: self.load_config(startup=False))  # Explicit call
+        util_menu.add_command(label="Load Config", command=lambda: self.load_config(startup=False))
         util_menu.add_separator()
         util_menu.add_command(label="Show ASCII Table", command=self.show_ascii_table)
         menubar.add_cascade(label="Utils", menu=util_menu)
@@ -1122,62 +1106,32 @@ class HexEditorApp:
         self.file_size = 0
         self.search_matches = []
         self.current_match_idx = -1
+        self.recent_files = []
 
-        # Undo/Redo stacks
         self._undo_stack = []
         self._redo_stack = []
-        self._max_undo_states = 50  # Limit the number of undo states to prevent excessive memory usage
-        self._is_undoing_or_redoing = False  # Flag to prevent saving state during undo/redo operations
+        self._max_undo_states = 50
+        self._is_undoing_or_redoing = False
 
         self._apply_menu_theme(menubar)
 
-        # FIX: Bind events to the root window, not hex_table, as hex_table generates them on root
         self.root.bind("<<HexSelection>>", self._on_hex_table_selection)
         self.root.bind("<<HexScroll>>", self._on_hex_table_scroll)
 
-        # 2. Add functions for keypress to perform the functions with ctrl key
         self._bind_shortcuts()
 
-        # 3. Add function to load config.dat info when starting prog
-        self.load_config(startup=True)  # Load config on startup
+        self.load_config(startup=True)
 
-        # 5. Add option to exit via button.
         self.exit_button = ttk.Button(self.left_panel, text="Exit Application", command=self.root.quit,
                                       style="TButton")
         self.exit_button.pack(side="bottom", fill="x", padx=3, pady=5)
         ToolTip(self.exit_button, "Close the Hex Editor (Ctrl+Q)")
         self.status_bar.config(text="Ready.")
 
-        # Save initial state after all setup
         self._save_undo_state()
-        self._update_undo_redo_status()  # Update undo/redo count in status bar
+        self._update_undo_redo_status()
 
-    def _bind_shortcuts(self):
-        # File operations
-        self.root.bind("<Control-o>", lambda e: self.load_file())
-        self.root.bind("<Control-s>", lambda e: self.save_file_as())
-        self.root.bind("<Control-q>", lambda e: self.root.quit())
-        self.root.bind("<Control-z>", lambda e: self.undo())  # Undo shortcut
-        self.root.bind("<Control-y>", lambda e: self.redo())  # Redo shortcut
-        self.root.bind("<Control-c>", lambda e: self.copy_selection())  # Copy shortcut
-        self.root.bind("<Control-x>", lambda e: self.cut_selection())  # Cut shortcut
-        self.root.bind("<Control-v>", lambda e: self.paste_at_offset())  # Paste shortcut
 
-        # Navigation
-        self.root.bind("<Control-t>", lambda e: self.hex_table.goto_offset_and_display(0))
-        self.root.bind("<Control-p>", lambda e: self.hex_table.scroll_pages(-1))
-        self.root.bind("<Control-n>", lambda e: self.hex_table.scroll_pages(1))
-        self.root.bind("<Control-e>", lambda e: self._goto_end_of_file())
-        self.root.bind("<Control-l>", lambda e: self.goto_line_entry_widget.focus_set())  # Go To Line shortcut
-
-        # Selection
-        self.root.bind("<Control-a>", lambda e: self.hex_table._select_all())
-
-        # Search/Go To
-        self.root.bind("<Control-f>", lambda e: self.search_entry_widget.focus_set())
-        self.root.bind("<Control-g>", lambda e: self.goto_entry_widget.focus_set())
-
-        self.status_bar.config(text="Keyboard shortcuts enabled (Ctrl+O, S, Q, Z, Y, C, X, V, T, P, N, E, A, F, G, L).")
 
     def _set_ttk_style(self):
         s = ttk.Style()
@@ -1187,7 +1141,7 @@ class HexEditorApp:
         s.configure("TLabel", background=self.colors["PANEL_BG"], foreground=self.colors["FG"])
         s.configure("TLabelframe", background=self.colors["PANEL_BG"], foreground=self.colors["PANEL_FG"],
                     font=("Arial", 9, "bold"), bordercolor=self.colors["HEX_CELL_OUTLINE"],
-                    relief="ridge")  # Changed relief
+                    relief="ridge")
         s.configure("TLabelframe.Label", background=self.colors["PANEL_BG"], foreground=self.colors["PANEL_FG"],
                     font=("Arial", 9, "bold"))
 
@@ -1199,7 +1153,7 @@ class HexEditorApp:
                     selectforeground=self.colors["FG"],
                     bordercolor=self.colors["HEX_CELL_OUTLINE"],
                     arrowcolor=self.colors["FG"],
-                    relief="ridge"  # Changed relief
+                    relief="ridge"
                     )
         s.map("TCombobox",
               fieldbackground=[("readonly", self.colors["EDIT_BG"])],
@@ -1212,7 +1166,7 @@ class HexEditorApp:
         s.configure("TButton",
                     background=self.colors["BUTTON_BG"],
                     foreground=self.colors["BUTTON_FG"],
-                    relief="ridge",  # Changed relief
+                    relief="ridge",
                     font=("Arial", 9, "bold"),
                     bordercolor=self.colors["HEX_CELL_OUTLINE"],
                     focusthickness=1,
@@ -1228,19 +1182,17 @@ class HexEditorApp:
 
         self.frame_main.config(bg=self.colors["PANEL_BG"])
         self.left_panel.config(bg=self.colors["PANEL_BG"])
-        self.right_side_container.config(bg=self.colors["PANEL_BG"])  # New: Theme right_side_container
+        self.right_side_container.config(bg=self.colors["PANEL_BG"])
         self.hex_view_container.config(bg=self.colors["PANEL_BG"])
-        self.search_panel.config(bg=self.colors["PANEL_BG"])  # New: Theme search_panel
+        self.search_panel.config(bg=self.colors["PANEL_BG"])
         self.status_bar.config(bg=self.colors["STATUS_BG"], fg=self.colors["STATUS_FG"])
-        self._set_ttk_style()  # Re-apply style to update all ttk widgets
+        self._set_ttk_style()
         self.hex_table.apply_theme(self.colors)
 
-        # Update inspector labels (values)
         for label_dict in [self.inspector_labels]:
             for label in label_dict.values():
                 label.config(background=self.colors["PANEL_BG"], foreground=self.colors["FG"])
 
-        # Update the static labels in the Data Inspector (e.g., "8-bit Integer:", etc.)
         for child in self.inspector_frame.winfo_children():
             if isinstance(child, ttk.Label) and child in self.inspector_static_labels.values():
                 child.config(background=self.colors["PANEL_BG"], foreground=self.colors["FG"])
@@ -1256,46 +1208,44 @@ class HexEditorApp:
         self.current_offset_display_label.config(background=self.colors["PANEL_BG"], foreground=self.colors["FG"])
         self.last_replaced_offset_label.config(background=self.colors["PANEL_BG"], foreground=self.colors["FG"])
 
-        # Update the static "Offset:" and "Line:" labels in the Go To section
         self.goto_offset_label.config(background=self.colors["PANEL_BG"], foreground=self.colors["FG"])
         self.goto_line_label.config(background=self.colors["PANEL_BG"], foreground=self.colors["FG"])
 
-        # Update the tk.Entry widgets' backgrounds and foregrounds
         self.goto_entry_widget.config(
             bg=self.colors["EDIT_BG"], fg=self.colors["EDIT_FG"], insertbackground=self.colors["EDIT_CURSOR"],
             highlightbackground=self.colors["HEX_CELL_OUTLINE"], highlightcolor=self.colors["CURSOR_COLOR"],
-            relief="ridge"  # Ensure relief is applied here too
+            relief="ridge"
         )
         self.goto_line_entry_widget.config(
             bg=self.colors["EDIT_BG"], fg=self.colors["EDIT_FG"], insertbackground=self.colors["EDIT_CURSOR"],
             highlightbackground=self.colors["HEX_CELL_OUTLINE"], highlightcolor=self.colors["CURSOR_COLOR"],
-            relief="ridge"  # Ensure relief is applied here too
+            relief="ridge"
         )
         self.search_entry_widget.config(
             bg=self.colors["EDIT_BG"], fg=self.colors["EDIT_FG"], insertbackground=self.colors["EDIT_CURSOR"],
             highlightbackground=self.colors["HEX_CELL_OUTLINE"], highlightcolor=self.colors["CURSOR_COLOR"],
-            relief="ridge"  # Ensure relief is applied here too
+            relief="ridge"
         )
         self.replace_entry_widget.config(
             bg=self.colors["EDIT_BG"], fg=self.colors["EDIT_FG"], insertbackground=self.colors["EDIT_CURSOR"],
             highlightbackground=self.colors["HEX_CELL_OUTLINE"], highlightcolor=self.colors["CURSOR_COLOR"],
-            relief="ridge"  # Ensure relief is applied here too
+            relief="ridge"
         )
         self.offset_entry_widget.config(
             bg=self.colors["EDIT_BG"], fg=self.colors["EDIT_FG"], insertbackground=self.colors["EDIT_CURSOR"],
             highlightbackground=self.colors["HEX_CELL_OUTLINE"], highlightcolor=self.colors["CURSOR_COLOR"],
-            relief="ridge"  # Ensure relief is applied here too
+            relief="ridge"
         )
         self.offset_repl_entry_widget.config(
             bg=self.colors["EDIT_BG"], fg=self.colors["EDIT_FG"], insertbackground=self.colors["EDIT_CURSOR"],
             highlightbackground=self.colors["HEX_CELL_OUTLINE"], highlightcolor=self.colors["CURSOR_COLOR"],
-            relief="ridge"  # Ensure relief is applied here too
+            relief="ridge"
         )
         self.search_results_listbox.config(
             bg=self.colors["EDIT_BG"], fg=self.colors["EDIT_FG"],
             selectbackground=self.colors["HEX_SEL_COLOR"], selectforeground=self.colors["HEX_VALUE_COLOR"],
             highlightbackground=self.colors["HEX_CELL_OUTLINE"], highlightcolor=self.colors["CURSOR_COLOR"],
-            relief="ridge"  # Ensure relief is applied here too
+            relief="ridge"
         )
 
         self._apply_menu_theme(self.root.nametowidget(self.root.cget("menu")))
@@ -1308,12 +1258,68 @@ class HexEditorApp:
             activebackground=self.colors["BUTTON_ACTIVE_BG"],
             activeforeground=self.colors["FG"]
         )
-        for i in range(menu_widget.index('end') + 1):
-            if menu_widget.type(i) == 'cascade':
-                submenu_name = menu_widget.entrycget(i, "menu")
-                if submenu_name:
-                    submenu = self.root.nametowidget(submenu_name)
-                    self._apply_menu_theme(submenu)
+        end_index = menu_widget.index('end')
+        if end_index is not None:  # Check if end_index is not None
+            for i in range(end_index + 1):
+                if menu_widget.type(i) == 'cascade':
+                    submenu_name = menu_widget.entrycget(i, "menu")
+                    if submenu_name:
+                        submenu = self.root.nametowidget(submenu_name)
+                        self._apply_menu_theme(submenu)
+
+    def add_bookmark(self):
+        if not self.hex_table.selected:
+            messagebox.showwarning("Add Bookmark", "No byte selected to bookmark.")
+            return
+
+        row, col, _ = self.hex_table.selected
+        offset = row * BYTES_PER_ROW + col
+
+        bookmark_name = simpledialog.askstring("Add Bookmark", "Enter a name for the bookmark:", parent=self.root)
+        if bookmark_name:
+            self.bookmarks[bookmark_name] = offset
+            self.update_bookmarks_list()
+            self.status_bar.config(text=f"Bookmark '{bookmark_name}' added at offset 0x{offset:08X}.")
+
+    def delete_bookmark(self):
+        selected_bookmark = self.bookmarks_listbox.curselection()
+        if not selected_bookmark:
+            messagebox.showwarning("Delete Bookmark", "No bookmark selected to delete.")
+            return
+
+        selected_item = self.bookmarks_listbox.get(selected_bookmark[0])
+        bookmark_name = selected_item.split(" (")[0]  # Extract the name before the offset
+
+        if bookmark_name in self.bookmarks:
+            del self.bookmarks[bookmark_name]
+            self.update_bookmarks_list()
+            self.status_bar.config(text=f"Bookmark '{bookmark_name}' deleted.")
+        else:
+            messagebox.showwarning("Delete Bookmark", "Selected bookmark not found.")
+
+
+
+    def update_bookmarks_list(self):
+        self.bookmarks_listbox.delete(0, tk.END)
+        for name, offset in self.bookmarks.items():
+            self.bookmarks_listbox.insert(tk.END, f"{name} (0x{offset:08X})")
+
+    def goto_bookmark(self):
+        selected_bookmark = self.bookmarks_listbox.curselection()
+        if not selected_bookmark:
+            messagebox.showwarning("Go To Bookmark", "No bookmark selected.")
+            return
+
+        # Extract the bookmark name from the listbox item
+        selected_item = self.bookmarks_listbox.get(selected_bookmark[0])
+        bookmark_name = selected_item.split(" (")[0]  # Extract the name before the offset
+
+        if bookmark_name in self.bookmarks:
+            offset = self.bookmarks[bookmark_name]
+            self.hex_table.goto_offset_and_display(offset)
+            self.status_bar.config(text=f"Navigated to bookmark '{bookmark_name}' at offset 0x{offset:08X}.")
+        else:
+            messagebox.showwarning("Go To Bookmark", "Selected bookmark not found.")
 
     def _goto_end_of_file(self):
         if self.file_size > 0:
@@ -1335,7 +1341,7 @@ class HexEditorApp:
             self.current_addr_label.config(text="0x00000000")
             self.current_offset_display_label.config(text="Offset: N/A")
             self.update_inspector(0)
-            self._update_status_bar_info(0)  # Update status bar for no selection
+            self._update_status_bar_info(0)
 
     def _on_hex_table_scroll(self, event):
         offset = self.hex_table.current_display_offset
@@ -1360,7 +1366,101 @@ class HexEditorApp:
         else:
             self.status_bar.config(text="Offset: 0x00000000 | ASCII: '.' (Empty File)")
             self.current_offset_display_label.config(text="Offset: N/A")
-        self._update_undo_redo_status()  # Always update undo/redo count
+        self._update_undo_redo_status()
+
+    # def _build_left_panel_widgets(self):
+    #     panel = self.left_panel
+    #
+    #     self.inspector_frame = ttk.LabelFrame(panel, text="════█ Data Inspector (Little-endian) █════",
+    #                                           style="TLabelframe")
+    #     self.inspector_frame.pack(fill="x", padx=3, pady=5)
+    #
+    #     self.inspector_frame.columnconfigure(0, weight=1)
+    #     self.inspector_frame.columnconfigure(1, weight=1)
+    #
+    #     self.inspector_labels = {}
+    #     self.inspector_static_labels = {}
+    #     for t, y in zip(
+    #             ["8-bit Integer", "16-bit Integer", "32-bit Integer", "64-bit Integer", "16-bit Float", "32-bit Float",
+    #              "64-bit Float"],
+    #             range(7)
+    #     ):
+    #         static_label = ttk.Label(self.inspector_frame, text=f"{t}:", background=self.colors["PANEL_BG"],
+    #                                  foreground=self.colors["FG"], anchor="w", font=("Arial", 8))
+    #         static_label.grid(row=y, column=0, sticky="w", padx=2, pady=1)
+    #         self.inspector_static_labels[t] = static_label
+    #
+    #         value_label = ttk.Label(self.inspector_frame, text="N/A", background=self.colors["PANEL_BG"],
+    #                                 foreground=self.colors["FG"], anchor="w", font=("Arial", 8))
+    #         value_label.grid(row=y, column=1, sticky="w", padx=2, pady=1)
+    #         self.inspector_labels[t] = value_label
+    #
+    #     finf = ttk.LabelFrame(panel, text="════█ File Info █══════════════════", style="TLabelframe")
+    #     finf.pack(fill="x", padx=3, pady=5)
+    #
+    #     self.file_path_label = ttk.Label(finf, text="Filename?", background=self.colors["PANEL_BG"],
+    #                                      foreground=self.colors["FG"], wraplength=220, anchor="w")
+    #     self.file_path_label.pack(fill="x", padx=2, pady=1)
+    #     self.file_size_label = ttk.Label(finf, text="File Size?", background=self.colors["PANEL_BG"],
+    #                                      foreground=self.colors["FG"], anchor="w")
+    #     self.file_size_label.pack(fill="x", padx=2, pady=1)
+    #     self.created_label = ttk.Label(finf, text="Created?", background=self.colors["PANEL_BG"],
+    #                                    foreground=self.colors["FG"], anchor="w")
+    #     self.created_label.pack(fill="x", padx=2, pady=1)
+    #     self.modified_label = ttk.Label(finf, text="Modified?", background=self.colors["PANEL_BG"],
+    #                                     foreground=self.colors["FG"], anchor="w")
+    #     self.modified_label.pack(fill="x", padx=2, pady=1)
+    #     self.file_type_label = ttk.Label(finf, text="File Type?", background=self.colors["PANEL_BG"],
+    #                                      foreground=self.colors["FG"], anchor="w")
+    #     self.file_type_label.pack(fill="x", padx=2, pady=1)
+    #     self.md5_label = ttk.Label(finf, text="MD5 Hash?", background=self.colors["PANEL_BG"],
+    #                                foreground=self.colors["FG"],
+    #                                anchor="w")
+    #     self.md5_label.pack(fill="x", padx=2, pady=1)
+    #
+    #     goto = ttk.LabelFrame(panel, text="════█ Go To █════════════════════", style="TLabelframe")
+    #     goto.pack(fill="x", padx=3, pady=5)
+    #     self.current_addr_label = ttk.Label(goto, background=self.colors["PANEL_BG"],
+    #                                         foreground=self.colors["OFFSET_COLOR"], font=("Consolas", 10, "bold"))
+    #     self.current_addr_label.pack(fill="x", padx=2, pady=1)
+    #
+    #     self.last_replaced_offset_label = ttk.Label(goto, text="Last Replaced: N/A", background=self.colors["PANEL_BG"],
+    #                                                 foreground=self.colors["FG"], font=("Arial", 8))
+    #     self.last_replaced_offset_label.pack(fill="x", padx=2, pady=1)
+    #
+    #     fr_offset = ttk.Frame(goto, style="TFrame")
+    #     fr_offset.pack(fill="x", padx=2, pady=2)
+    #     self.goto_offset_label = ttk.Label(fr_offset, text="Offset:", background=self.colors["PANEL_BG"],
+    #                                        foreground=self.colors["FG"])
+    #     self.goto_offset_label.pack(side="left")
+    #     self.goto_var = tk.StringVar(value="0")
+    #     self.goto_entry_widget = tk.Entry(fr_offset, textvariable=self.goto_var, width=12,
+    #                                       bg=self.colors["EDIT_BG"], fg=self.colors["EDIT_FG"],
+    #                                       insertbackground=self.colors["EDIT_CURSOR"],
+    #                                       relief="ridge", highlightthickness=1,
+    #                                       highlightbackground=self.colors["HEX_CELL_OUTLINE"],
+    #                                       highlightcolor=self.colors["CURSOR_COLOR"])
+    #     self.goto_entry_widget.pack(side="left", padx=2)
+    #     ToolTip(self.goto_entry_widget, "Enter hexadecimal offset (e.g., 0x100) or decimal (e.g., 256) to jump to.")
+    #     self.goto_button = ttk.Button(fr_offset, text="Go", command=self.goto_offset, state="disabled")
+    #     self.goto_button.pack(side="left", padx=2)
+    #
+    #     fr_line = ttk.Frame(goto, style="TFrame")
+    #     fr_line.pack(fill="x", padx=2, pady=2)
+    #     self.goto_line_label = ttk.Label(fr_line, text="Line:   ", background=self.colors["PANEL_BG"],
+    #                                      foreground=self.colors["FG"])
+    #     self.goto_line_label.pack(side="left")
+    #     self.goto_line_var = tk.StringVar(value="0")
+    #     self.goto_line_entry_widget = tk.Entry(fr_line, textvariable=self.goto_line_var, width=12,
+    #                                            bg=self.colors["EDIT_BG"], fg=self.colors["EDIT_FG"],
+    #                                            insertbackground=self.colors["EDIT_CURSOR"],
+    #                                            relief="ridge", highlightthickness=1,
+    #                                            highlightbackground=self.colors["HEX_CELL_OUTLINE"],
+    #                                            highlightcolor=self.colors["CURSOR_COLOR"])
+    #     self.goto_line_entry_widget.pack(side="left", padx=2)
+    #     ToolTip(self.goto_line_entry_widget, "Enter a decimal line number to jump to.")
+    #     self.goto_line_button = ttk.Button(fr_line, text="Go Line", command=self.goto_line, state="disabled")
+    #     self.goto_line_button.pack(side="left", padx=2)
 
     def _build_left_panel_widgets(self):
         panel = self.left_panel
@@ -1372,8 +1472,9 @@ class HexEditorApp:
         self.inspector_frame.columnconfigure(0, weight=1)
         self.inspector_frame.columnconfigure(1, weight=1)
 
-        self.inspector_labels = {}
-        self.inspector_static_labels = {}
+        self.inspector_labels = {}  # Initialize inspector_labels dictionary
+        self.inspector_static_labels = {}  # Initialize inspector_static_labels dictionary
+
         for t, y in zip(
                 ["8-bit Integer", "16-bit Integer", "32-bit Integer", "64-bit Integer", "16-bit Float", "32-bit Float",
                  "64-bit Float"],
@@ -1414,7 +1515,6 @@ class HexEditorApp:
 
         goto = ttk.LabelFrame(panel, text="════█ Go To █════════════════════", style="TLabelframe")
         goto.pack(fill="x", padx=3, pady=5)
-        # UNCOMMENTED: This label shows the current address in the Go To frame
         self.current_addr_label = ttk.Label(goto, background=self.colors["PANEL_BG"],
                                             foreground=self.colors["OFFSET_COLOR"], font=("Consolas", 10, "bold"))
         self.current_addr_label.pack(fill="x", padx=2, pady=1)
@@ -1423,10 +1523,8 @@ class HexEditorApp:
                                                     foreground=self.colors["FG"], font=("Arial", 8))
         self.last_replaced_offset_label.pack(fill="x", padx=2, pady=1)
 
-        # Go To Offset
         fr_offset = ttk.Frame(goto, style="TFrame")
         fr_offset.pack(fill="x", padx=2, pady=2)
-        # Store reference to the label
         self.goto_offset_label = ttk.Label(fr_offset, text="Offset:", background=self.colors["PANEL_BG"],
                                            foreground=self.colors["FG"])
         self.goto_offset_label.pack(side="left")
@@ -1442,12 +1540,10 @@ class HexEditorApp:
         self.goto_button = ttk.Button(fr_offset, text="Go", command=self.goto_offset, state="disabled")
         self.goto_button.pack(side="left", padx=2)
 
-        # Go To Line (New)
         fr_line = ttk.Frame(goto, style="TFrame")
         fr_line.pack(fill="x", padx=2, pady=2)
-        # Store reference to the label
         self.goto_line_label = ttk.Label(fr_line, text="Line:   ", background=self.colors["PANEL_BG"],
-                                         foreground=self.colors["FG"])  # Added spaces for alignment
+                                         foreground=self.colors["FG"])
         self.goto_line_label.pack(side="left")
         self.goto_line_var = tk.StringVar(value="0")
         self.goto_line_entry_widget = tk.Entry(fr_line, textvariable=self.goto_line_var, width=12,
@@ -1461,18 +1557,34 @@ class HexEditorApp:
         self.goto_line_button = ttk.Button(fr_line, text="Go Line", command=self.goto_line, state="disabled")
         self.goto_line_button.pack(side="left", padx=2)
 
-        # Exit button is added at the end of __init__ to ensure it's at the bottom
-        # It's parent is still self.left_panel, so it will be packed at the bottom of the left panel
+        # Add Bookmarks Panel
+        bookmarks_frame = ttk.LabelFrame(panel, text="════█ Bookmarks █════════════════════", style="TLabelframe")
+        bookmarks_frame.pack(fill="x", padx=3, pady=5)
 
-    # New method to build widgets for the right-hand search panel
+        self.bookmarks_listbox = tk.Listbox(bookmarks_frame, height=5, bg=self.colors["EDIT_BG"],
+                                            fg=self.colors["EDIT_FG"],
+                                            selectbackground=self.colors["HEX_SEL_COLOR"],
+                                            selectforeground=self.colors["HEX_VALUE_COLOR"],
+                                            relief="ridge", highlightthickness=1,
+                                            highlightbackground=self.colors["HEX_CELL_OUTLINE"],
+                                            highlightcolor=self.colors["CURSOR_COLOR"])
+        self.bookmarks_listbox.pack(fill="x", padx=2, pady=2)
+        self.bookmarks_listbox.bind("<<ListboxSelect>>", lambda e: self.goto_bookmark())
+
+        add_bookmark_button = ttk.Button(bookmarks_frame, text="Add Bookmark", command=self.add_bookmark)
+        add_bookmark_button.pack(fill="x", padx=2, pady=2)
+
+        delete_bookmark_button = ttk.Button(bookmarks_frame, text="Delete Bookmark", command=self.delete_bookmark)
+        delete_bookmark_button.pack(fill="x", padx=2, pady=2)
+
     def _build_search_panel_widgets(self):
-        panel = self.search_panel  # Use the new search_panel as parent
+        panel = self.search_panel
 
         srep = ttk.LabelFrame(panel, text="════█ Search & Replace █════════════", style="TLabelframe")
         srep.pack(fill="x", padx=3, pady=5)
 
-        self.search_type = tk.StringVar(value="Hex")
-        ttk.Combobox(srep, textvariable=self.search_type, values=["Hex", "ASCII"], width=8, state="readonly",
+        self.search_type = tk.StringVar(value="ASCII")
+        ttk.Combobox(srep, textvariable=self.search_type, values=["ASCII", "HEX"], width=8, state="readonly",
                      style="TCombobox").pack(fill="x", padx=2, pady=2)
 
         self.search_var = tk.StringVar()
@@ -1512,7 +1624,6 @@ class HexEditorApp:
                                            foreground=self.colors["FG"])
         self.match_count_label.pack(side="left", padx=2, expand=True, fill="x")
 
-        # Search Results List - now packed directly into search_panel
         self.search_results_frame = ttk.LabelFrame(panel, text="════█ Search Results █═════════════",
                                                    style="TLabelframe")
         self.search_results_frame.pack(fill="both", expand=True, padx=3, pady=5)
@@ -1527,7 +1638,7 @@ class HexEditorApp:
                                                  fg=self.colors["EDIT_FG"],
                                                  selectbackground=self.colors["HEX_SEL_COLOR"],
                                                  selectforeground=self.colors["HEX_VALUE_COLOR"],
-                                                 relief="ridge",  # Changed relief
+                                                 relief="ridge",
                                                  highlightthickness=1,
                                                  highlightbackground=self.colors["HEX_CELL_OUTLINE"],
                                                  highlightcolor=self.colors["CURSOR_COLOR"])
@@ -1594,10 +1705,7 @@ class HexEditorApp:
             except (struct.error, IndexError):
                 pass
             try:
-                # Python's struct module doesn't have a direct 'half-precision float' type ('e')
-                # It's usually supported in numpy or via custom conversion.
-                # self.inspector_labels["16-bit Float"].config(text=str(struct.unpack('<e', chunk[:2])[0]))
-                self.inspector_labels["16-bit Float"].config(text="N/A")  # Placeholder as 'e' is not standard struct.
+                self.inspector_labels["16-bit Float"].config(text="N/A")
             except (struct.error, IndexError):
                 pass
 
@@ -1642,17 +1750,16 @@ class HexEditorApp:
             if not data:
                 messagebox.showwarning("Warning", "File is empty.")
                 self.hex_table.load_file(b'')
-                self.file_path = path  # Still keep path for context
+                self.file_path = path
                 self.file_size = 0
                 self._update_file_info()
                 self.status_bar.config(text=f"Opened empty file: {os.path.basename(path)}")
-                # Disable buttons for empty file
                 self.search_button.config(state="disabled")
                 self.search_replace_button.config(state="disabled")
                 self.offset_replace_button.config(state="disabled")
                 self.goto_button.config(state="disabled")
-                self.goto_line_button.config(state="disabled")  # Disable Go Line button
-                self.clear_search_results()  # Clear any previous search results
+                self.goto_line_button.config(state="disabled")
+                self.clear_search_results()
                 return
 
             self.hex_table.load_file(data)
@@ -1664,7 +1771,7 @@ class HexEditorApp:
                 self.hex_table.selected = (0, 0, "hex")
                 self.hex_table.selection_start_offset = 0
                 self.hex_table.selection_end_offset = 0
-                self.hex_table.goto_offset_and_display(0)  # Triggers selection/scroll event for status bar
+                self.hex_table.goto_offset_and_display(0)
             else:
                 self.hex_table.selected = None
                 self.hex_table.selection_start_offset = None
@@ -1673,14 +1780,20 @@ class HexEditorApp:
                 self.current_offset_display_label.config(text="Offset: N/A")
                 self.update_inspector(0)
             self.hex_table._redraw()
-            # Enable buttons when a file is loaded
             self.search_button.config(state="normal")
             self.search_replace_button.config(state="normal")
             self.offset_replace_button.config(state="normal")
             self.goto_button.config(state="normal")
-            self.goto_line_button.config(state="normal")  # Enable Go Line button
-            self.clear_search_results()  # Clear any previous search results
-            self._save_undo_state()  # Save initial state after loading file
+            self.goto_line_button.config(state="normal")
+            self.clear_search_results()
+            self._save_undo_state()
+
+            if path in self.recent_files:
+                self.recent_files.remove(path)
+            self.recent_files.insert(0, path)
+            if len(self.recent_files) > 10:
+                self.recent_files.pop()
+
         except MemoryError:
             messagebox.showerror("Error", f"File '{os.path.basename(path)}' is too large to load into memory.")
             self.status_bar.config(text="Failed: File too large.")
@@ -1689,8 +1802,8 @@ class HexEditorApp:
             self.search_replace_button.config(state="disabled")
             self.offset_replace_button.config(state="disabled")
             self.goto_button.config(state="disabled")
-            self.goto_line_button.config(state="disabled")  # Disable Go Line button
-            self.clear_search_results()  # Clear any previous search results
+            self.goto_line_button.config(state="disabled")
+            self.clear_search_results()
         except Exception as e:
             messagebox.showerror("Error", f"Failed to load file '{os.path.basename(path)}': {str(e)}")
             self.status_bar.config(text="Failed to load file.")
@@ -1699,8 +1812,8 @@ class HexEditorApp:
             self.search_replace_button.config(state="disabled")
             self.offset_replace_button.config(state="disabled")
             self.goto_button.config(state="disabled")
-            self.goto_line_button.config(state="disabled")  # Disable Go Line button
-            self.clear_search_results()  # Clear any previous search results
+            self.goto_line_button.config(state="disabled")
+            self.clear_search_results()
 
     def save_file_as(self):
         if not self.file_path and not self.hex_table.file_data:
@@ -1798,9 +1911,9 @@ class HexEditorApp:
         self.file_type_label.config(text=f"Type: {file_type_desc}")
 
         self.md5_label.config(text="MD5 Hash: Calculating...")
-        self.root.update_idletasks()  # Force update to show "Calculating..."
+        self.root.update_idletasks()
         try:
-            if os.path.exists(fp) and self.file_size < 100 * 1024 * 1024:  # Limit MD5 for very large files
+            if os.path.exists(fp) and self.file_size < 100 * 1024 * 1024:
                 md5 = hashlib.md5()
                 with open(fp, "rb") as f:
                     for chunk in iter(lambda: f.read(4096), b""):
@@ -1854,11 +1967,10 @@ class HexEditorApp:
                 self.status_bar.config(text="Go To Line failed: Invalid line number.")
                 return
 
-            # Convert line number to offset (0-indexed line number means actual row number)
             target_offset = line_num * BYTES_PER_ROW
 
             if 0 <= target_offset < len(self.hex_table.file_data) or \
-                    (len(self.hex_table.file_data) == 0 and target_offset == 0):  # Allow goto line 0 for empty file
+                    (len(self.hex_table.file_data) == 0 and target_offset == 0):
                 self.hex_table.goto_offset_and_display(target_offset)
                 self.status_bar.config(text=f"Navigated to line {line_num} (Offset 0x{target_offset:08X}).")
             else:
@@ -1871,14 +1983,12 @@ class HexEditorApp:
             messagebox.showerror("Error", f"An unexpected error occurred: {str(e)}")
             self.status_bar.config(text=f"Go To Line failed: {e}")
 
-
-
     def search_bytes(self):
         s = self.search_var.get().strip()
         mode = self.search_type.get()
         data = self.hex_table.file_data
 
-        self.clear_search_results() # Clear previous results first
+        self.clear_search_results()
 
         if not s:
             self.status_bar.config(text="Search term is empty.")
@@ -1892,26 +2002,24 @@ class HexEditorApp:
                     self.status_bar.config(text="Search failed: Invalid hex string length.")
                     return
                 search_bytes = bytes.fromhex(s)
-            else:  # ASCII
+            else:
                 search_bytes = s.encode("ascii")
 
-            self.hex_table.match_length = len(search_bytes) # Store the length for highlighting
+            self.hex_table.match_length = len(search_bytes)
 
             for i in range(len(data) - len(search_bytes) + 1):
                 if data[i:i + len(search_bytes)] == search_bytes:
                     self.search_matches.append(i)
-                    # --- MODIFIED LINE HERE ---
-                    line_number = i // BYTES_PER_ROW # Calculate the line number
-                    self.search_results_listbox.insert(tk.END, f"Line: {line_number}, Offset: 0x{i:08X}") # Add to listbox with line number
-                    # --- END MODIFIED LINE ---
+                    line_number = i // BYTES_PER_ROW
+                    self.search_results_listbox.insert(tk.END, f"Line: {line_number}, Offset: 0x{i:08X}")
 
             if self.search_matches:
                 self.current_match_idx = 0
-                self.search_results_listbox.selection_set(0) # Select the first item in the listbox
-                self.search_results_listbox.see(0) # Scroll to the first item
+                self.search_results_listbox.selection_set(0)
+                self.search_results_listbox.see(0)
                 self._highlight_match()
                 self.status_bar.config(text=f"Found {len(self.search_matches)} matches.")
-                self.clear_results_button.config(state="normal") # Enable clear button
+                self.clear_results_button.config(state="normal")
             else:
                 self.status_bar.config(text="No matches found.")
             self._show_search_result()
@@ -1923,14 +2031,13 @@ class HexEditorApp:
             messagebox.showerror("Error", f"An unexpected error occurred: {str(e)}")
             self.status_bar.config(text=f"Search failed: {e}")
 
-
     def _highlight_match(self):
         if not self.search_matches or self.current_match_idx < 0:
             self.hex_table.selection_start_offset = None
             self.hex_table.selection_end_offset = None
             self.hex_table._redraw()
             self.current_offset_display_label.config(text="Offset: N/A")
-            self.search_results_listbox.selection_clear(0, tk.END)  # Clear listbox selection
+            self.search_results_listbox.selection_clear(0, tk.END)
             return
 
         match_offset = self.search_matches[self.current_match_idx]
@@ -1941,11 +2048,10 @@ class HexEditorApp:
         self.hex_table.selected = (match_offset // BYTES_PER_ROW, match_offset % BYTES_PER_ROW, "hex")
         self.hex_table.goto_offset_and_display(match_offset)
 
-        # Update listbox selection
         self.search_results_listbox.selection_clear(0, tk.END)
         self.search_results_listbox.selection_set(self.current_match_idx)
-        self.search_results_listbox.see(self.current_match_idx)  # Scroll to make it visible
-        # Status bar update for highlighting is part of goto_offset_and_display via event
+        self.search_results_listbox.see(self.current_match_idx)
+        self.status_bar.config(text=f"Highlighted match {self.current_match_idx + 1} of {len(self.search_matches)}.")
 
     def _on_search_result_select(self, event):
         selected_indices = self.search_results_listbox.curselection()
@@ -1963,7 +2069,7 @@ class HexEditorApp:
         total = len(self.search_matches)
         current = self.current_match_idx + 1 if self.current_match_idx >= 0 else 0
         self.match_count_label.config(text=f"Matches: {current}/{total}")
-        # Status bar is updated by _highlight_match which calls goto_offset_and_display
+        self.status_bar.config(text=f"Showing match {current} of {total}.")
 
     def search_next(self):
         if not self.search_matches:
@@ -1974,7 +2080,6 @@ class HexEditorApp:
         self._highlight_match()
         self._show_search_result()
         self.status_bar.config(text=f"Moved to match {self.current_match_idx + 1} of {len(self.search_matches)}.")
-        # Selection and visibility in listbox are handled by _highlight_match
 
     def search_prev(self):
         if not self.search_matches:
@@ -1985,14 +2090,13 @@ class HexEditorApp:
         self._highlight_match()
         self._show_search_result()
         self.status_bar.config(text=f"Moved to match {self.current_match_idx + 1} of {len(self.search_matches)}.")
-        # Selection and visibility in listbox are handled by _highlight_match
 
     def clear_search_results(self):
         self.search_matches.clear()
         self.current_match_idx = -1
         self.search_results_listbox.delete(0, tk.END)
-        self._highlight_match()  # Clear any active highlight
-        self._show_search_result()  # Update count label
+        self._highlight_match()
+        self._show_search_result()
         self.clear_results_button.config(state="disabled")
         self.status_bar.config(text="Search results cleared.")
 
@@ -2017,7 +2121,7 @@ class HexEditorApp:
                     return
                 search_bytes = bytes.fromhex(s)
                 replace_bytes = bytes.fromhex(r)
-            else:  # ASCII
+            else:
                 search_bytes = s.encode("ascii")
                 replace_bytes = r.encode("ascii")
 
@@ -2028,7 +2132,7 @@ class HexEditorApp:
 
             self.search_matches.clear()
             self.current_match_idx = -1
-            self.hex_table.match_length = len(search_bytes)  # Store the length for highlighting
+            self.hex_table.match_length = len(search_bytes)
 
             for i in range(len(data) - len(search_bytes) + 1):
                 if data[i:i + len(search_bytes)] == search_bytes:
@@ -2045,14 +2149,14 @@ class HexEditorApp:
                 self.status_bar.config(text="Replace cancelled.")
                 return
 
-            self._save_undo_state()  # Save state BEFORE modification
+            self._save_undo_state()
             new_data = bytearray(data)
             for match_offset in self.search_matches:
                 new_data[match_offset:match_offset + len(replace_bytes)] = replace_bytes
 
             self.hex_table.load_file(new_data)
-            self.file_size = len(new_data)  # Update file size
-            self._update_file_info()  # Update file info panel
+            self.file_size = len(new_data)
+            self._update_file_info()
             self.status_bar.config(text=f"Replaced {num_replacements} matches.")
             self.current_match_idx = 0
             self._highlight_match()
@@ -2075,11 +2179,10 @@ class HexEditorApp:
 
         selected_bytes = self.hex_table.file_data[start: end + 1]
         hex_string = "".join(f"{b:02X}" for b in selected_bytes)
-        # ascii_string = "".join(chr(b) if 32 <= b < 127 else '.' for b in selected_bytes) # Not directly used for clipboard
 
         self.root.clipboard_clear()
         self.root.clipboard_append(hex_string)
-        self.root.update_idletasks()  # Ensure clipboard is updated immediately
+        self.root.update_idletasks()
 
         self.status_bar.config(text=f"Copied {len(selected_bytes)} bytes (0x{start:08X}-0x{end:08X}).")
 
@@ -2095,10 +2198,9 @@ class HexEditorApp:
             self.status_bar.config(text="Cut cancelled.")
             return
 
-        self.copy_selection()  # First, copy the bytes to the clipboard
-        self._save_undo_state()  # Save state before deleting
+        self.copy_selection()
+        self._save_undo_state()
 
-        # Now, delete the bytes
         new_file_data = bytearray()
         new_file_data.extend(self.hex_table.file_data[:start])
         new_file_data.extend(self.hex_table.file_data[end + 1:])
@@ -2115,9 +2217,8 @@ class HexEditorApp:
             self.status_bar.config(text="No active selection/cursor to paste at.")
             return
 
-        # Get the target offset from the current selection
         target_offset = self.hex_table.selected[0] * BYTES_PER_ROW + self.hex_table.selected[1]
-        if target_offset > len(self.hex_table.file_data):  # Handle pasting at end of file
+        if target_offset > len(self.hex_table.file_data):
             target_offset = len(self.hex_table.file_data)
 
         try:
@@ -2127,15 +2228,13 @@ class HexEditorApp:
             return
 
         paste_bytes = None
-        # Try to interpret clipboard content as hex string first
         clean_hex_string = "".join(c for c in clipboard_content if c in "0123456789abcdefABCDEF").strip()
         if len(clean_hex_string) % 2 == 0 and clean_hex_string:
             try:
                 paste_bytes = bytes.fromhex(clean_hex_string)
             except ValueError:
-                pass  # Not a valid hex string
+                pass
 
-        # If not hex, try interpreting as ASCII
         if paste_bytes is None:
             try:
                 paste_bytes = clipboard_content.encode("ascii")
@@ -2148,7 +2247,7 @@ class HexEditorApp:
             self.status_bar.config(text="No data to paste from clipboard.")
             return
 
-        self._save_undo_state()  # Save state before pasting
+        self._save_undo_state()
 
         new_file_data = bytearray()
         new_file_data.extend(self.hex_table.file_data[:target_offset])
@@ -2158,7 +2257,7 @@ class HexEditorApp:
         self.hex_table.load_file(new_file_data)
         self.file_size = len(new_file_data)
         self._update_file_info()
-        self.hex_table.goto_offset_and_display(target_offset)  # Keep cursor at start of pasted data
+        self.hex_table.goto_offset_and_display(target_offset)
         self.status_bar.config(text=f"Pasted {len(paste_bytes)} bytes at 0x{target_offset:08X}.")
 
     def fill_selection(self):
@@ -2186,9 +2285,8 @@ class HexEditorApp:
 
         try:
             fill_byte = int(value_str, 16)
-            self._save_undo_state()  # Save state before modification
+            self._save_undo_state()
 
-            # Create a mutable copy to modify
             modified_data = bytearray(self.hex_table.file_data)
             for i in range(start, end + 1):
                 modified_data[i] = fill_byte
@@ -2196,7 +2294,7 @@ class HexEditorApp:
             self.hex_table.load_file(modified_data)
             self.file_size = len(modified_data)
             self._update_file_info()
-            self.hex_table.goto_offset_and_display(start)  # Re-display at start of filled range
+            self.hex_table.goto_offset_and_display(start)
             self.status_bar.config(
                 text=f"Filled {num_bytes_to_fill} bytes with 0x{fill_byte:02X} from 0x{start:08X} to 0x{end:08X}.")
         except ValueError:
@@ -2240,7 +2338,6 @@ class HexEditorApp:
             self.status_bar.config(text="Dec to Hex cancelled.")
 
     def save_config(self):
-        # Map theme dict to its string name for saving
         theme_name_map = {
             id(LIGHT_THEME_COLORS): "LIGHT_THEME_COLORS",
             id(PYTHONPLUS_THEME_COLORS): "PYTHONPLUS_THEME_COLORS",
@@ -2259,21 +2356,20 @@ class HexEditorApp:
         }
         try:
             with open("config.dat", "w") as f:
-                json.dump(config, f, indent=4)  # Use indent for readability
+                json.dump(config, f, indent=4)
             messagebox.showinfo("Save Config", "Configuration saved to config.dat")
             self.status_bar.config(text="Configuration saved.")
         except Exception as e:
             messagebox.showerror("Save Config Error", f"Failed to save config: {e}")
             self.status_bar.config(text="Failed to save configuration.")
 
-    def load_config(self, startup=False):  # Added startup parameter
+    def load_config(self, startup=False):
         config_file_path = "config.dat"
         if os.path.exists(config_file_path):
             try:
                 with open(config_file_path, "r") as f:
                     config = json.load(f)
 
-                # 1. Apply Theme first
                 theme_map = {
                     "LIGHT_THEME_COLORS": LIGHT_THEME_COLORS,
                     "PYTHONPLUS_THEME_COLORS": PYTHONPLUS_THEME_COLORS,
@@ -2284,7 +2380,6 @@ class HexEditorApp:
                 self._apply_theme(chosen_theme)
                 self.status_bar.config(text="Configuration loaded. Applied theme.")
 
-                # 2. Load File (if specified and exists)
                 file_to_load = config.get("file_path", "")
                 if file_to_load:
                     if os.path.exists(file_to_load):
@@ -2302,45 +2397,41 @@ class HexEditorApp:
                             self.search_replace_button.config(state="normal")
                             self.offset_replace_button.config(state="normal")
                             self.goto_button.config(state="normal")
-                            self.goto_line_button.config(state="normal")  # Enable Go Line button
-                            self.clear_search_results()  # Clear any previous search results
-                            self._save_undo_state()  # Save initial state after loading from config
+                            self.goto_line_button.config(state="normal")
+                            self.clear_search_results()
+                            self._save_undo_state()
                         except Exception as e:
                             messagebox.showerror("Error",
                                                  f"Failed to load configured file '{os.path.basename(file_to_load)}': {str(e)}")
                             self.status_bar.config(text="Failed to load configured file. Only theme applied.")
-                            # Still disable buttons if file loading failed
                             self.search_button.config(state="disabled")
                             self.search_replace_button.config(state="disabled")
                             self.offset_replace_button.config(state="disabled")
                             self.goto_button.config(state="disabled")
-                            self.goto_line_button.config(state="disabled")  # Disable Go Line button
-                            self.file_path = None  # Clear file path if load failed
-                            self.clear_search_results()  # Clear any previous search results
+                            self.goto_line_button.config(state="disabled")
+                            self.file_path = None
+                            self.clear_search_results()
                     else:
                         messagebox.showwarning("Config Load",
                                                f"Configured file '{os.path.basename(file_to_load)}' not found. Only theme loaded.")
                         self.status_bar.config(
                             text=f"Configured file '{os.path.basename(file_to_load)}' missing. Theme loaded.")
-                        # Ensure buttons are disabled if the file is missing
                         self.search_button.config(state="disabled")
                         self.search_replace_button.config(state="disabled")
                         self.offset_replace_button.config(state="disabled")
                         self.goto_button.config(state="disabled")
-                        self.goto_line_button.config(state="disabled")  # Disable Go Line button
-                        self.file_path = None  # Clear file path if file is missing
-                        self.clear_search_results()  # Clear any previous search results
-                else:  # No file path in config, or empty string
+                        self.goto_line_button.config(state="disabled")
+                        self.file_path = None
+                        self.clear_search_results()
+                else:
                     self.status_bar.config(text="Configuration loaded. No file path specified in config.")
-                    # Ensure buttons are disabled if no file was loaded
                     self.search_button.config(state="disabled")
                     self.search_replace_button.config(state="disabled")
                     self.offset_replace_button.config(state="disabled")
                     self.goto_button.config(state="disabled")
-                    self.goto_line_button.config(state="disabled")  # Disable Go Line button
-                    self.clear_search_results()  # Clear any previous search results
+                    self.goto_line_button.config(state="disabled")
+                    self.clear_search_results()
 
-                # Update other info if available, even if file load failed
                 self.created_label.config(text=config.get("created_date", "N/A"))
                 self.modified_label.config(text=config.get("modified_date", "N/A"))
                 self.file_size_label.config(
@@ -2352,91 +2443,75 @@ class HexEditorApp:
                 messagebox.showerror("Error", f"An unexpected error occurred while loading config: {str(e)}")
                 self.status_bar.config(text="Error loading config. Default theme applied.")
         else:
-            if not startup:  # Only show message if user explicitly tried to load
+            if not startup:
                 messagebox.showwarning("Load Config", "No config.dat file found.")
             self.status_bar.config(text="No config.dat found. Default theme applied.")
-            # Ensure buttons are disabled if no file was loaded
             self.search_button.config(state="disabled")
             self.search_replace_button.config(state="disabled")
             self.offset_replace_button.config(state="disabled")
             self.goto_button.config(state="disabled")
-            self.goto_line_button.config(state="disabled")  # Disable Go Line button
-            self.file_path = None  # No file loaded
-            self.clear_search_results()  # Clear any previous search results
+            self.goto_line_button.config(state="disabled")
+            self.file_path = None
+            self.clear_search_results()
 
     def _save_undo_state(self):
         if self._is_undoing_or_redoing:
-            return  # Don't save state if we are currently undoing or redoing
+            return
 
-        # Clear redo stack whenever a new change is made
         self._redo_stack.clear()
 
-        # Add current file data to undo stack
-        # Only add if the current state is different from the last saved state (to avoid redundant entries)
         if not self._undo_stack or self._undo_stack[-1] != self.hex_table.file_data:
             if len(self._undo_stack) >= self._max_undo_states:
-                self._undo_stack.pop(0)  # Remove the oldest state if stack is full
-            # Make a deep copy of the bytearray
+                self._undo_stack.pop(0)
             self._undo_stack.append(bytearray(self.hex_table.file_data))
-            # self.status_bar.config(text=f"Saved undo state. Undo history: {len(self._undo_stack)}.") # Removed verbose status
-        # else: self.status_bar.config(text="No change detected, undo state not saved.") # Can uncomment for more verbose status
         self._update_undo_redo_status()
 
     def undo(self):
-        if len(self._undo_stack) > 1:  # Need at least two states to undo (current + previous)
+        if len(self._undo_stack) > 1:
             self._is_undoing_or_redoing = True
-            # Move current state to redo stack
             self._redo_stack.append(bytearray(self.hex_table.file_data))
 
-            # Load the previous state from undo stack
             previous_state = self._undo_stack.pop()
             self.hex_table.load_file(previous_state)
             self.file_size = len(previous_state)
             self._update_file_info()
-            # Try to restore selection, or default to 0 if selection was invalid for new state
             current_offset = self.hex_table.selected[0] * BYTES_PER_ROW + self.hex_table.selected[
                 1] if self.hex_table.selected else 0
             if current_offset >= self.file_size:
-                current_offset = max(0, self.file_size - 1)  # Adjust if file shrunk
+                current_offset = max(0, self.file_size - 1)
             self.hex_table.goto_offset_and_display(current_offset)
             self.status_bar.config(text=f"Undo successful. History: {len(self._undo_stack)} states.")
             self._is_undoing_or_redoing = False
         else:
             self.status_bar.config(text="Nothing to undo.")
-        self._update_undo_redo_status()  # Always update undo/redo count
+        self._update_undo_redo_status()
 
     def redo(self):
         if self._redo_stack:
             self._is_undoing_or_redoing = True
-            # Move current state to undo stack
             self._undo_stack.append(bytearray(self.hex_table.file_data))
 
-            # Load the next state from redo stack
             next_state = self._redo_stack.pop()
             self.hex_table.load_file(next_state)
             self.file_size = len(next_state)
             self._update_file_info()
-            # Try to restore selection, or default to 0 if selection was invalid for new state
             current_offset = self.hex_table.selected[0] * BYTES_PER_ROW + self.hex_table.selected[
                 1] if self.hex_table.selected else 0
             if current_offset >= self.file_size:
-                current_offset = max(0, self.file_size - 1)  # Adjust if file shrunk
+                current_offset = max(0, self.file_size - 1)
             self.hex_table.goto_offset_and_display(current_offset)
             self.status_bar.config(text=f"Redo successful. Redo history: {len(self._redo_stack)} states.")
             self._is_undoing_or_redoing = False
         else:
             self.status_bar.config(text="Nothing to redo.")
-        self._update_undo_redo_status()  # Always update undo/redo count
+        self._update_undo_redo_status()
 
     def _update_undo_redo_status(self):
-        # Format the status bar to show undo/redo counts
         current_status_text = self.status_bar.cget("text")
-        # Find the last pipe if it exists, and take the part before it.
-        # This prevents stacking " | Undo: X | Redo: Y" repeatedly.
         parts = current_status_text.split('|')
         main_status = parts[0].strip()
 
-        undo_count = max(0, len(self._undo_stack) - 1)  # Exclude the current state from undoable count
+        undo_count = max(0, len(self._undo_stack) - 1)
         redo_count = len(self._redo_stack)
 
         new_status_suffix = f" | Undo: {undo_count} | Redo: {redo_count}"
@@ -2445,11 +2520,8 @@ class HexEditorApp:
     def show_ascii_table(self, event=None):
         ascii_window = tk.Toplevel(self.root)
         ascii_window.title("ASCII Table")
-        # Removed geometry setting for ASCII window to allow it to auto-size or be managed by user
         ascii_window.geometry("800x600")
-        #centre window on screen
         ascii_window.resizable(True, True)
-        # ascii_window.iconbitmap("assets/icon.ico")
 
         default_font = tkfont.Font(family="Courier New", size=18, weight="bold")
         ascii_window.option_add("*Font", default_font)
@@ -2470,7 +2542,6 @@ class HexEditorApp:
         canvas.configure(yscrollcommand=scrollbar.set)
         canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
-
 
         selected_value = [0]
         rect_ids = {}
@@ -2571,11 +2642,11 @@ class HexEditorApp:
                 return
 
             old_value = self.hex_table.file_data[offset]
-            self._save_undo_state()  # Save state BEFORE modification
+            self._save_undo_state()
             self.hex_table.file_data[offset] = repl_value
             self.hex_table._redraw()
             self.last_replaced_offset_label.config(text=f"Last Replaced: 0x{offset:08X}")
-            self.hex_table.goto_offset_and_display(offset)  # This triggers selection/scroll update for status bar
+            self.hex_table.goto_offset_and_display(offset)
             self.status_bar.config(text=f"Replaced byte at 0x{offset:08X} from {old_value:02X} to {repl_value:02X}.")
         except ValueError:
             messagebox.showerror("Error", "Invalid offset or replacement format.")
@@ -2584,10 +2655,31 @@ class HexEditorApp:
             messagebox.showerror("Error", f"An error occurred: {str(e)}")
             self.status_bar.config(text=f"Offset Replace failed: {e}")
 
+    def _bind_shortcuts(self):
+        self.root.bind("<Control-o>", lambda e: self.load_file())
+        self.root.bind("<Control-s>", lambda e: self.save_file_as())
+        self.root.bind("<Control-q>", lambda e: self.root.quit())
+        self.root.bind("<Control-z>", lambda e: self.undo())
+        self.root.bind("<Control-y>", lambda e: self.redo())
+        self.root.bind("<Control-c>", lambda e: self.copy_selection())
+        self.root.bind("<Control-x>", lambda e: self.cut_selection())
+        self.root.bind("<Control-v>", lambda e: self.paste_at_offset())
+
+        self.root.bind("<Control-t>", lambda e: self.hex_table.goto_offset_and_display(0))
+        self.root.bind("<Control-p>", lambda e: self.hex_table.scroll_pages(-1))
+        self.root.bind("<Control-n>", lambda e: self.hex_table.scroll_pages(1))
+        self.root.bind("<Control-e>", lambda e: self._goto_end_of_file())
+        self.root.bind("<Control-l>", lambda e: self.goto_line_entry_widget.focus_set())
+
+        self.root.bind("<Control-a>", lambda e: self.hex_table._select_all())
+
+        self.root.bind("<Control-f>", lambda e: self.search_entry_widget.focus_set())
+        self.root.bind("<Control-g>", lambda e: self.goto_entry_widget.focus_set())
+
+        self.status_bar.config(text="Keyboard shortcuts enabled (Ctrl+O, S, Q, Z, Y, C, X, V, T, P, N, E, A, F, G, L).")
+
 
 if __name__ == "__main__":
     root = tk.Tk()
     app = HexEditorApp(root)
     root.mainloop()
-
-
