@@ -1,3 +1,4 @@
+#Hex editor v2.3
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk, simpledialog
 import os
@@ -1368,99 +1369,7 @@ class HexEditorApp:
             self.current_offset_display_label.config(text="Offset: N/A")
         self._update_undo_redo_status()
 
-    # def _build_left_panel_widgets(self):
-    #     panel = self.left_panel
-    #
-    #     self.inspector_frame = ttk.LabelFrame(panel, text="════█ Data Inspector (Little-endian) █════",
-    #                                           style="TLabelframe")
-    #     self.inspector_frame.pack(fill="x", padx=3, pady=5)
-    #
-    #     self.inspector_frame.columnconfigure(0, weight=1)
-    #     self.inspector_frame.columnconfigure(1, weight=1)
-    #
-    #     self.inspector_labels = {}
-    #     self.inspector_static_labels = {}
-    #     for t, y in zip(
-    #             ["8-bit Integer", "16-bit Integer", "32-bit Integer", "64-bit Integer", "16-bit Float", "32-bit Float",
-    #              "64-bit Float"],
-    #             range(7)
-    #     ):
-    #         static_label = ttk.Label(self.inspector_frame, text=f"{t}:", background=self.colors["PANEL_BG"],
-    #                                  foreground=self.colors["FG"], anchor="w", font=("Arial", 8))
-    #         static_label.grid(row=y, column=0, sticky="w", padx=2, pady=1)
-    #         self.inspector_static_labels[t] = static_label
-    #
-    #         value_label = ttk.Label(self.inspector_frame, text="N/A", background=self.colors["PANEL_BG"],
-    #                                 foreground=self.colors["FG"], anchor="w", font=("Arial", 8))
-    #         value_label.grid(row=y, column=1, sticky="w", padx=2, pady=1)
-    #         self.inspector_labels[t] = value_label
-    #
-    #     finf = ttk.LabelFrame(panel, text="════█ File Info █══════════════════", style="TLabelframe")
-    #     finf.pack(fill="x", padx=3, pady=5)
-    #
-    #     self.file_path_label = ttk.Label(finf, text="Filename?", background=self.colors["PANEL_BG"],
-    #                                      foreground=self.colors["FG"], wraplength=220, anchor="w")
-    #     self.file_path_label.pack(fill="x", padx=2, pady=1)
-    #     self.file_size_label = ttk.Label(finf, text="File Size?", background=self.colors["PANEL_BG"],
-    #                                      foreground=self.colors["FG"], anchor="w")
-    #     self.file_size_label.pack(fill="x", padx=2, pady=1)
-    #     self.created_label = ttk.Label(finf, text="Created?", background=self.colors["PANEL_BG"],
-    #                                    foreground=self.colors["FG"], anchor="w")
-    #     self.created_label.pack(fill="x", padx=2, pady=1)
-    #     self.modified_label = ttk.Label(finf, text="Modified?", background=self.colors["PANEL_BG"],
-    #                                     foreground=self.colors["FG"], anchor="w")
-    #     self.modified_label.pack(fill="x", padx=2, pady=1)
-    #     self.file_type_label = ttk.Label(finf, text="File Type?", background=self.colors["PANEL_BG"],
-    #                                      foreground=self.colors["FG"], anchor="w")
-    #     self.file_type_label.pack(fill="x", padx=2, pady=1)
-    #     self.md5_label = ttk.Label(finf, text="MD5 Hash?", background=self.colors["PANEL_BG"],
-    #                                foreground=self.colors["FG"],
-    #                                anchor="w")
-    #     self.md5_label.pack(fill="x", padx=2, pady=1)
-    #
-    #     goto = ttk.LabelFrame(panel, text="════█ Go To █════════════════════", style="TLabelframe")
-    #     goto.pack(fill="x", padx=3, pady=5)
-    #     self.current_addr_label = ttk.Label(goto, background=self.colors["PANEL_BG"],
-    #                                         foreground=self.colors["OFFSET_COLOR"], font=("Consolas", 10, "bold"))
-    #     self.current_addr_label.pack(fill="x", padx=2, pady=1)
-    #
-    #     self.last_replaced_offset_label = ttk.Label(goto, text="Last Replaced: N/A", background=self.colors["PANEL_BG"],
-    #                                                 foreground=self.colors["FG"], font=("Arial", 8))
-    #     self.last_replaced_offset_label.pack(fill="x", padx=2, pady=1)
-    #
-    #     fr_offset = ttk.Frame(goto, style="TFrame")
-    #     fr_offset.pack(fill="x", padx=2, pady=2)
-    #     self.goto_offset_label = ttk.Label(fr_offset, text="Offset:", background=self.colors["PANEL_BG"],
-    #                                        foreground=self.colors["FG"])
-    #     self.goto_offset_label.pack(side="left")
-    #     self.goto_var = tk.StringVar(value="0")
-    #     self.goto_entry_widget = tk.Entry(fr_offset, textvariable=self.goto_var, width=12,
-    #                                       bg=self.colors["EDIT_BG"], fg=self.colors["EDIT_FG"],
-    #                                       insertbackground=self.colors["EDIT_CURSOR"],
-    #                                       relief="ridge", highlightthickness=1,
-    #                                       highlightbackground=self.colors["HEX_CELL_OUTLINE"],
-    #                                       highlightcolor=self.colors["CURSOR_COLOR"])
-    #     self.goto_entry_widget.pack(side="left", padx=2)
-    #     ToolTip(self.goto_entry_widget, "Enter hexadecimal offset (e.g., 0x100) or decimal (e.g., 256) to jump to.")
-    #     self.goto_button = ttk.Button(fr_offset, text="Go", command=self.goto_offset, state="disabled")
-    #     self.goto_button.pack(side="left", padx=2)
-    #
-    #     fr_line = ttk.Frame(goto, style="TFrame")
-    #     fr_line.pack(fill="x", padx=2, pady=2)
-    #     self.goto_line_label = ttk.Label(fr_line, text="Line:   ", background=self.colors["PANEL_BG"],
-    #                                      foreground=self.colors["FG"])
-    #     self.goto_line_label.pack(side="left")
-    #     self.goto_line_var = tk.StringVar(value="0")
-    #     self.goto_line_entry_widget = tk.Entry(fr_line, textvariable=self.goto_line_var, width=12,
-    #                                            bg=self.colors["EDIT_BG"], fg=self.colors["EDIT_FG"],
-    #                                            insertbackground=self.colors["EDIT_CURSOR"],
-    #                                            relief="ridge", highlightthickness=1,
-    #                                            highlightbackground=self.colors["HEX_CELL_OUTLINE"],
-    #                                            highlightcolor=self.colors["CURSOR_COLOR"])
-    #     self.goto_line_entry_widget.pack(side="left", padx=2)
-    #     ToolTip(self.goto_line_entry_widget, "Enter a decimal line number to jump to.")
-    #     self.goto_line_button = ttk.Button(fr_line, text="Go Line", command=self.goto_line, state="disabled")
-    #     self.goto_line_button.pack(side="left", padx=2)
+
 
     def _build_left_panel_widgets(self):
         panel = self.left_panel
@@ -2352,7 +2261,8 @@ class HexEditorApp:
             "current_file_pos": self.hex_table.current_display_offset if self.hex_table.file_data else 0,
             "current_file_size": self.file_size,
             "created_date": self.created_label.cget("text") if self.created_label.cget("text") != "N/A" else "",
-            "modified_date": self.modified_label.cget("text") if self.modified_label.cget("text") != "N/A" else ""
+            "modified_date": self.modified_label.cget("text") if self.modified_label.cget("text") != "N/A" else "",
+            "bookmarks": self.bookmarks  # Include bookmarks in the configuration
         }
         try:
             with open("config.dat", "w") as f:
@@ -2430,7 +2340,12 @@ class HexEditorApp:
                     self.offset_replace_button.config(state="disabled")
                     self.goto_button.config(state="disabled")
                     self.goto_line_button.config(state="disabled")
+                    self.file_path = None
                     self.clear_search_results()
+
+                # Load bookmarks from config
+                self.bookmarks = config.get("bookmarks", {})
+                self.update_bookmarks_list()
 
                 self.created_label.config(text=config.get("created_date", "N/A"))
                 self.modified_label.config(text=config.get("modified_date", "N/A"))
@@ -2683,3 +2598,5 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = HexEditorApp(root)
     root.mainloop()
+
+
