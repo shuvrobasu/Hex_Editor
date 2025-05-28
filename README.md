@@ -126,12 +126,12 @@ No external libraries are required beyond the Python standard library (uses `has
     *   **File Operations & Editing:** Handles file I/O, byte manipulation (insert, delete, crop, fill).
     *   **Search/Replace & Offset Replace:** Implements logic for finding and replacing byte sequences.
     *   **Utilities:** Contains methods for hash calculation for selected data, data type conversion, ASCII table display.
-    *   **Theming & Configuration:** Manages theme application and saving/loading of user preferences and application state to `hex_editor_config.json`.
+    *   **Theming & Configuration:** Manages theme application and saving/loading of user preferences and application state to `config.dat`.
     *   **Undo/Redo:** Implements an undo/redo stack for data modifications.
 
 ## Configuration
 
-The application saves settings (last file, theme, view position, encoding, endianness, bookmarks) to `hex_editor_config.json` in the script's directory, managed via the **"Utils" -> "Save/Load Config"** menu options and automatically on certain actions like theme changes or opening files.
+The application saves settings (last file, theme, view position, encoding, endianness, bookmarks) to `config.dat` in the script's directory, managed via the **"Utils" -> "Save/Load Config"** menu options and automatically on certain actions like theme changes or opening files.
 
 ## License ##
 
