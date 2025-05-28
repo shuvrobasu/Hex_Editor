@@ -103,7 +103,7 @@ No external libraries are required beyond the Python standard library (uses `has
 
 ## How to Run
 
-1.  Save the code as a Python file (e.g., `hex_editor_v2.3.py`).
+1.  Save the code as a Python file (e.g., `hex_editor.py`).
 2.  Open a terminal or command prompt.
 3.  Navigate to the directory where you saved the file.
 4.  Run the script using the Python interpreter:
