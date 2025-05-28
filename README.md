@@ -11,7 +11,7 @@
     *   View file content side-by-side in both hex and ASCII representations.
     *   **Character Encoding Selection:** Choose from various encodings (e.g., Latin-1, UTF-8, ASCII, CP1252) for the ASCII column display via a dropdown in the "View Options" panel.
 *   **Line Numbers & Offsets:**
-    *   **Line Numbers:** A dedicated column on the far left displays 0-indexed line numbers for easy row identification (`upto a Million lines`.
+    *   **Line Numbers:** A dedicated column on the far left displays 0-indexed line numbers for easy row identification (`upto a Million lines`).
     *   **Offsets:** The traditional hexadecimal offset column is positioned next to the line numbers.
       
 *   **File Operations:**
